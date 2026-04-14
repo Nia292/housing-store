@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: housingdb
+  datasource:
+    url: jdbc:h2:file:~/housing.db;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
