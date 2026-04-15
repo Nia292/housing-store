@@ -40,4 +40,4 @@ jobs:
         context: .
         file: Dockerfile
         push: true
-        tags: ghcr.io/housing-store/housing-store:latest
+        tags: ghcr.io/nia292/housing-store/housing-store:latest
