@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Table(name = "xiv_plot")
+@Table(name = "xiv_plot", indexes = {@Index(name = "idx_search", columnList = "estate_owner_name, greeting")})
 public class HousingPlot {
 
     @Id

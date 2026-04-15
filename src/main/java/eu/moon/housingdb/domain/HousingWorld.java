@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Entity
-@Table(name = "xiv_world")
+@Table(name = "xiv_world", indexes = {@Index(name = "idx_world_id", columnList = "world_id", unique = true),})
 @Data
 public class HousingWorld {
 
