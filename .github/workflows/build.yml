@@ -10,18 +10,14 @@ name: Java CI with Gradle
 on:
   push:
     branches: [ "main" ]
-permissions:
-  contents: read
-  packages: write
+
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    permissions:
       contents: read
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 26
