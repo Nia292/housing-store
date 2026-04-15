@@ -27,7 +27,7 @@ jobs:
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v3
       with:
-        registry: ghcr.io
+        registry: docker.pkg.github.com
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Setup Gradle
@@ -40,4 +40,4 @@ jobs:
         context: .
         file: Dockerfile
         push: true
-        tags: ghcr.io/nia292/housing-store/housing-store:latest
+        tags: docker.pkg.github.com/nia292/housing-store/housing-store:latest
