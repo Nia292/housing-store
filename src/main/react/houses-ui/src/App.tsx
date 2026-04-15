@@ -24,7 +24,7 @@ const dateFormat = new Intl.DateTimeFormat(navigator.language, {
 })
 
 function WorldFilter(props: {selectedWorld: number | null, availableWorlds: AvailableWorldDto[], selectWorld: Callback<number>}) {
-    return <div className="flex flex-column">
+    return (<div className="flex flex-column">
         <label htmlFor="world-filter">Select World</label>
         <Dropdown
             value={props.selectedWorld}
@@ -36,11 +36,11 @@ function WorldFilter(props: {selectedWorld: number | null, availableWorlds: Avai
             id="world-filter"
             style={{width: "200px"}}
         />
-    </div>
+    </div>)
 }
 
 function TerritoryFilter(props: {selectedTerritory: number | null, availableTerritories: AvailableWorldDto[], setSelectedTerritory: Callback<number>}) {
-    return <div className="flex flex-column">
+    return (<div className="flex flex-column">
         <label htmlFor="territory-filter">Select Area</label>
         <Dropdown
             id="territory-filter"
@@ -52,20 +52,19 @@ function TerritoryFilter(props: {selectedTerritory: number | null, availableTerr
             optionValue="id"
             style={{width: "200px"}}
         />
-    </div>
+    </div>)
 }
 
-function TextFilter(props: {text: string, setText: Callback<string>, placeholder: string}) {
-    return <div className="flex flex-column">
-        <label htmlFor="owner-filter">{props.placeholder}</label>
-        <InputText style={{width: "200px"}} id="owner-filter" placeholder={props.placeholder} value={props.text}
+function TextFilter(props: {inputId: string, text: string, setText: Callback<string>, placeholder: string}) {
+    return (<div className="flex flex-column">
+        <label htmlFor={props.inputId}>{props.placeholder}</label>
+        <InputText style={{width: "200px"}} id={props.inputId} placeholder={props.placeholder} value={props.text}
                    onChange={(e) => props.setText(e.target.value)}/>
-    </div>
+    </div>)
 }
 
 
 function App() {
-
     const [availableWorlds, setAvailableWorlds] = useState<AvailableWorldDto[]>([]);
     const [availableTerritories, setAvailableTerritories] = useState<AvailableTerritoryDto[]>([]);
 
@@ -108,6 +107,7 @@ function App() {
         if (deferredSearch == null) {
             return;
         }
+
         setLoading(true)
         axios.post<SearchResultDto[]>("/api/search", deferredSearch)
             .then(value => {
@@ -139,13 +139,12 @@ function App() {
         return <div style={{display: "flex", flexDirection: "row"}}>
             <div style={{marginRight: "8px"}}><WorldFilter availableWorlds={availableWorlds} selectedWorld={selectedWorld} selectWorld={setSelectedWorld}/></div>
             <div style={{marginRight: "8px"}}><TerritoryFilter availableTerritories={availableTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory}/></div>
-            <div style={{marginRight: "8px"}}><TextFilter text={onwerSearch} setText={setOwnerSearch} placeholder="Search Owner"/></div>
-            <div style={{marginRight: "8px"}}><TextFilter text={greetingSearch} setText={setGreetingSearch} placeholder="Search Greeting"/></div>
+            <div style={{marginRight: "8px"}}><TextFilter inputId="owner-filter" text={onwerSearch} setText={setOwnerSearch} placeholder="Search Owner"/></div>
+            <div style={{marginRight: "8px"}}><TextFilter inputId="greeting-filter" text={greetingSearch} setText={setGreetingSearch} placeholder="Search Greeting"/></div>
         </div>
     }
 
     const header = renderHeader();
-
     return (
         <PrimeReactProvider>
             <DataTable value={searchResults}
