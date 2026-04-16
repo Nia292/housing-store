@@ -71,6 +71,7 @@ public class HousingController {
     public void updateEntries(@RequestBody List<HousingUpdateDto> content) {
         if (content.isEmpty()) return;
         var houseId = content.getFirst().HouseId();
+        log.info("Receiving update for {} - {} - {}", houseId.WorldId(), houseId.TerritoryTypeId(), houseId.WardNumber());
         var wardToUpdate = housingWardRepository.findWard(houseId.WorldId(), houseId.TerritoryTypeId(), houseId.WardNumber());
         for (HousingPlot plot : wardToUpdate.getPlots()) {
             var matchingDto = content.stream().filter(dto -> dto.HouseId().PlotNumber() == plot.getPlotNumber()).findFirst().orElseThrow();
