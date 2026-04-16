@@ -11,7 +11,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +68,7 @@ public class HousingdbApplication implements InitializingBean {
             var ward = new HousingWard();
             ward.setWardNumber(i);
             ward.setPlots(new ArrayList<>());
-            for (int j = 1; j < 60; j++) {
+            for (int j = 1; j <= 60; j++) {
                 HousingPlot plot = new HousingPlot();
                 plot.setPlotNumber(j);
                 ward.getPlots().add(plot);
