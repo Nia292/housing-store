@@ -1,6 +1,8 @@
 package eu.moon.housingdb.dto;
 
-import eu.moon.housingdb.domain.HousingPlot;
+import java.util.List;
 
-public record SearchResultDto(String worldName, String territoryName, int ward, HousingPlot plot) {
+public record SearchResultDto(List<SearchResultPlotDto> plots, long totalElementCount) {
+
+
 }

@@ -1,31 +1,21 @@
 package eu.moon.housingdb.domain;
 
-public enum HousingFlags {
-    PlotOwned,
-    VisitorsAllowed,
-    HasSearchComment,
-    HouseBuilt,
-    OwnedByFC,
-    UNKNOWN
-    ;
+public class HousingFlags {
 
-    public static HousingFlags ofXivOrdinal(int value) {
-        if (value == 1 << 0) {
-            return PlotOwned;
-        }
-        if (value == 1 << 1) {
-            return VisitorsAllowed;
-        }
-        if (value == 1 << 3) {
-            return HasSearchComment;
-        }
-        if (value == 1 << 4) {
-            return HouseBuilt;
-        }
-        if (value == 1 << 5) {
-            return OwnedByFC;
-        }
-        return UNKNOWN;
+    public static boolean isOwned(short value) {
+        return (value & 1 << 0) != 0;
+    }
+
+    public static boolean isVisitorsAllowed(short value) {
+        return (value & 1 << 1) != 0;
+    }
+
+    public static boolean isHouseBuilt(short value) {
+        return (value & 1 << 3) != 0;
+    }
+
+    public static boolean isOwnedByFc(short value) {
+        return (value & 1 << 4) != 0;
     }
 }
 

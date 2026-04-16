@@ -33,8 +33,19 @@ public class HousingPlot {
     private HousingTag tagC;
 
     @Column(name = "flags")
-    @Enumerated(EnumType.STRING)
-    private HousingFlags flags;
+    private short flags;
+
+    @Column(name = "is_owned")
+    private boolean isOwned;
+
+    @Column(name = "visitors_allowed")
+    private boolean visitorsAllowed;
+
+    @Column(name = "is_built")
+    private boolean isBuilt;
+
+    @Column(name = "is_free_company")
+    private boolean isFreeCompany;
 
     @Column(name = "greeting")
     private String greeting;

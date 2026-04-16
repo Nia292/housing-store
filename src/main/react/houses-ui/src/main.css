@@ -1,0 +1,25 @@
+html {
+    font-size: 14px;
+}
+.flex {
+    display: flex;
+}
+.flex-column {
+    flex-direction: column;
+}
+.flex-row {
+    flex-direction: row;
+}
+
+.for-sale {
+    font-weight: lighter;
+    color: gray;
+}
+
+.yes-visitor {
+    color: darkgreen;
+}
+
+.no-visitor {
+    color: darkred;
+}
