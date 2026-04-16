@@ -12,6 +12,7 @@ import {
 import {DataTable} from "primereact/datatable";
 import {Column} from 'primereact/column';
 import {SearchBar} from "./component/SearchBar.tsx";
+import {Paginator, type PaginatorPageChangeEvent} from "primereact/paginator";
 
 const dateFormat = new Intl.DateTimeFormat(navigator.language, {
     day: "numeric",
@@ -22,6 +23,12 @@ const dateFormat = new Intl.DateTimeFormat(navigator.language, {
     second: undefined
 })
 
+const wardSuffix: Record<number, string> = {
+    1: 'st',
+    2: 'nd',
+    3: 'rd'
+}
+
 
 function App() {
     const [availableWorlds, setAvailableWorlds] = useState<AvailableWorldDto[]>([]);
@@ -30,6 +37,8 @@ function App() {
     const [searchResults, setSearchResults] = useState<SearchResultEntryDto[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
+    const [page, setPage] = useState<number>(0);
+    const [pageSize, setPageSize] = useState<number>(60);
     const [totalRecords, setTotalRecords] = useState<number>(0);
 
     const [deferredSearch, setDeferredSearch] = useState<SearchDto | null>(null);
@@ -47,8 +56,14 @@ function App() {
             return;
         }
 
+        const search: SearchDto = {
+            ...deferredSearch,
+            page,
+            pageSize
+        };
+
         setLoading(true)
-        axios.post<SearchResultDto>("/api/search", deferredSearch)
+        axios.post<SearchResultDto>("/api/search", search)
             .then(value => {
                 setSearchResults(value.data.plots);
                 setLoading(false)
@@ -58,7 +73,12 @@ function App() {
                 console.error(err);
                 setLoading(false);
             })
-    }, [deferredSearch]);
+    }, [deferredSearch, page, pageSize]);
+
+    function onPageChange(pageChange: PaginatorPageChangeEvent) {
+        setPage(pageChange.page);
+        setPageSize(pageChange.rows);
+    }
 
     const LastUpdatedDate = (row: SearchResultEntryDto) => {
         if (row.plot.lastUpdated == null) {
@@ -94,26 +114,46 @@ function App() {
         return <span className="yes-visitor">{label}</span>
     }
 
+    const DrawPlotName = (row: SearchResultEntryDto) => {
+        const ward = row.ward + 1;
+        const suffix = wardSuffix[ward] ?? 'th';
+        return `Plot ${row.plot.plotNumber}, ${ward}${suffix} ward`;
+    }
+
     return (
         <PrimeReactProvider>
-            <DataTable value={searchResults}
-                       size="small"
-                       loading={loading}
-                       header={<SearchBar onSearchChange={setDeferredSearch} totalRecords={totalRecords} availableTerritories={availableTerritories} availableWorlds={availableWorlds}/>}
-            >
-                <Column style={{width: "200px"}} field="worldName" filter header="World" showFilterMenu={false}
-                        className={"w-full"}></Column>
-                <Column style={{width: "200px"}} field="territoryName" header="Area"></Column>
-                <Column style={{width: "60px"}} field="ward" header="Ward"></Column>
-                <Column style={{width: "60px"}} field="plot.plotNumber" header="Plot"></Column>
-                <Column header="Owner" body={DrawName}></Column>
-                <Column field="plot.greeting" header="Greeting"></Column>
-                <Column style={{width: "450px"}} header="Tags" body={DrawTags}></Column>
-                <Column style={{width: "200px"}} field="plot.lastUpdated" header="Last Update"
-                        body={LastUpdatedDate}></Column>
-                <Column style={{width: "200px"}} field="plot.lastGreetingUpdated" header="Last Update (Greeting)"
-                        body={LastGreetingUpdateDate}></Column>
-            </DataTable>
+           <div style={{marginLeft: "12rem", marginRight: "12rem"}}>
+               <h1>Housing Index</h1>
+               <p>
+                   A searchable housing index. Plot information including owner and tags are updated on viewing a ward. Greetings are only updated
+                   when an entry is selected and the housing info sign is shown. Some filters are available. Filters are conditional-and filters, except when choosing multiple tags (= one-of)
+               </p>
+               <SearchBar onSearchChange={setDeferredSearch} availableTerritories={availableTerritories} availableWorlds={availableWorlds}/>
+               <DataTable value={searchResults}
+                          size="small"
+                          loading={loading}
+                          scrollable scrollHeight="calc(100vh - 240px)"
+               >
+                   <Column style={{width: "100px"}} field="worldName" header="World"></Column>
+                   <Column style={{width: "100px"}} field="territoryName" header="Area"></Column>
+                   <Column style={{width: "130px"}} header="Plot" body={DrawPlotName}></Column>
+                   <Column style={{width: "150px"}} header="Owner" body={DrawName}></Column>
+                   <Column field="plot.greeting" header="Greeting"></Column>
+                   <Column style={{width: "450px"}} header="Tags" body={DrawTags}></Column>
+                   <Column style={{width: "200px"}} field="plot.lastUpdated" header="Last Update"
+                           body={LastUpdatedDate}></Column>
+                   <Column style={{width: "200px"}} field="plot.lastGreetingUpdated" header="Last Update (Greeting)"
+                           body={LastGreetingUpdateDate}></Column>
+               </DataTable>
+               <div>
+                   <Paginator first={page * 60}
+                              rows={pageSize}
+                              totalRecords={totalRecords}
+                              rowsPerPageOptions={[20, 30, 60, 120]}
+                              onPageChange={onPageChange}
+                   />
+               </div>
+           </div>
         </PrimeReactProvider>
     )
 }

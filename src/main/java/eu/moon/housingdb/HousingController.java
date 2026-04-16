@@ -52,6 +52,8 @@ public class HousingController {
                 searchDto.getTags(),
                 !searchDto.getTags().isEmpty(),
                 searchDto.isOnlyFilled(),
+                searchDto.isOnlyOpen(),
+                searchDto.isOnlyWithGreeting(),
                 PageRequest.of(searchDto.getPage(), searchDto.getPageSize())
         );
         return new SearchResultDto(result.get().toList(), result.getTotalElements());
@@ -101,11 +103,11 @@ public class HousingController {
         // int WorldId, int TerritoryTypeId, int WardNumber, int PlotNumber
         housingPlotRepository.findPlot(worldId, territoryId, wardNumber, plot)
                 .ifPresent(plot1 -> {
-                    if (StringUtils.hasText(newGreeting) && !Objects.equals(newGreeting, plot1.getGreeting())) {
+                    if (!Objects.equals(newGreeting, plot1.getGreeting())) {
                         plot1.setGreeting(newGreeting);
                         plot1.setLastGreetingUpdated(LocalDateTime.now());
+                        housingPlotRepository.save(plot1);
                     }
-                    housingPlotRepository.save(plot1);
                 });
     }
 }

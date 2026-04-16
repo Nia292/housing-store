@@ -1,11 +1,10 @@
 import type {Callback} from "../../types.ts";
 import {type AvailableTerritoryDto, type AvailableWorldDto, HousingTag, type SearchDto} from "../dto/dtos.ts";
 import {useEffect, useState} from "react";
-import {InputSwitch} from "primereact/inputswitch";
-import {Paginator, type PaginatorPageChangeEvent} from "primereact/paginator";
 import {Dropdown} from "primereact/dropdown";
 import {InputText} from "primereact/inputtext";
 import {MultiSelect} from "primereact/multiselect";
+import {Checkbox} from "primereact/checkbox";
 
 function WorldFilter(props: {selectedWorld: number | null, availableWorlds: AvailableWorldDto[], selectWorld: Callback<number>}) {
     return (<div className="flex flex-column">
@@ -60,7 +59,6 @@ function TagFilter(props: {inputId: string, selectedTags: HousingTag[], setSelec
 interface SearchBarProps {
     availableWorlds: AvailableWorldDto[];
     availableTerritories: AvailableTerritoryDto[];
-    totalRecords: number;
 
     onSearchChange: Callback<SearchDto>;
 }
@@ -71,39 +69,32 @@ export function SearchBar(props: SearchBarProps) {
     const [selectedWorld, setSelectedWorld] = useState<number | null>(403); // 403 = Raiden
     const [selectedTerritory, setSelectedTerritory] = useState<number | null>(null);
     const [onlyCollected, setOnlyCollected] = useState<boolean>(true);
+    const [hasGreeting, setHasGreeting] = useState<boolean>(false);
+    const [onlyOpen, setOnlyOpen] = useState<boolean>(false);
     const [selectedTags, setSelectedTags] = useState<HousingTag[]>([]);
 
-    const [page, setPage] = useState<number>(0);
-    const [pageSize, setPageSize] = useState<number>(60);
+
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            buildAndSubmitSearch(pageSize, page);
-        }, 500);
+            const searchDto: SearchDto = {
+                owner: onwerSearch,
+                isOpen: true,
+                worldId: selectedWorld,
+                greeting: greetingSearch,
+                territoryId: selectedTerritory,
+                wardNumber: null,
+                onlyFilled: onlyCollected,
+                tags: selectedTags,
+                page: 0, // set later
+                pageSize: 0, // set later
+                onlyOpen: onlyOpen,
+                onlyWithGreeting: hasGreeting
+            }
+            props.onSearchChange(searchDto);
+        }, 300);
         return () => clearTimeout(timeout);
-    }, [greetingSearch, onwerSearch, selectedWorld, selectedTerritory, onlyCollected, selectedTags]);
-
-    function onPageChange(pageChange: PaginatorPageChangeEvent) {
-        setPage(pageChange.page);
-        setPageSize(pageChange.rows);
-        buildAndSubmitSearch(pageChange.rows, pageChange.page);
-    }
-
-    function buildAndSubmitSearch(pageSize: number, page: number) {
-        const searchDto: SearchDto = {
-            owner: onwerSearch,
-            isOpen: true,
-            worldId: selectedWorld,
-            greeting: greetingSearch,
-            territoryId: selectedTerritory,
-            wardNumber: null,
-            onlyFilled: onlyCollected,
-            tags: selectedTags,
-            page: page,
-            pageSize: pageSize
-        }
-        props.onSearchChange(searchDto)
-    }
+    }, [greetingSearch, onwerSearch, selectedWorld, selectedTerritory, onlyCollected, selectedTags, onlyOpen, hasGreeting]);
 
     return (<div style={{display: "flex", flexDirection: "row"}}>
         <div style={{marginRight: "8px"}}><WorldFilter availableWorlds={props.availableWorlds} selectedWorld={selectedWorld} selectWorld={setSelectedWorld}/></div>
@@ -111,20 +102,19 @@ export function SearchBar(props: SearchBarProps) {
         <div style={{marginRight: "8px"}}><TextFilter inputId="owner-filter" text={onwerSearch} setText={setOwnerSearch} placeholder="Search Owner"/></div>
         <div style={{marginRight: "8px"}}><TextFilter inputId="greeting-filter" text={greetingSearch} setText={setGreetingSearch} placeholder="Search Greeting"/></div>
         <div style={{marginRight: "8px"}}><TagFilter inputId="tag-filter" selectedTags={selectedTags} setSelectedTags={setSelectedTags}/></div>
-        <div style={{marginRight: "8px"}}>
-            <div className="flex flex-column">
-                <label htmlFor="only-collected">Only Already Collected</label>
-                <InputSwitch style={{marginTop: "8px"}} inputId="only-collected" checked={onlyCollected} onChange={(e) => setOnlyCollected(e.value)} />
+        <div style={{marginRight: "8px"}} className="flex flex-column">
+            <div className="flex flex-center" style={{marginTop: "auto"}}>
+                <Checkbox inputId="only-collected" onChange={(e) => setOnlyCollected(e.checked ?? false)} checked={onlyCollected} />
+                <label className="ml-2" htmlFor="only-collected">Hide Never Indexed</label>
             </div>
-        </div>
-        <div style={{marginLeft: "auto"}}>
-            <Paginator first={page * 60}
-                       rows={pageSize}
-                       totalRecords={props.totalRecords}
-                       rowsPerPageOptions={[20, 30, 60, 120]}
-                       onPageChange={onPageChange}
-                       template={{ layout: 'FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown' }}
-            />
+            <div className="flex flex-center" style={{marginRight: "auto"}}>
+                <Checkbox inputId="has-greeting" checked={hasGreeting} onChange={(e) => setHasGreeting(e.checked ?? false)} />
+                <label className="ml-2" htmlFor="has-greeting">Only With Greeting</label>
+            </div>
+            <div className="flex flex-center" style={{marginRight: "auto"}}>
+                <Checkbox inputId="is-open" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.checked ?? false)} />
+                <label className="ml-2" htmlFor="is-open">Only Accessible</label>
+            </div>
         </div>
     </div>)
 }

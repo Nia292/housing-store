@@ -23,3 +23,14 @@ html {
 .no-visitor {
     color: darkred;
 }
+
+.flex-center {
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+}
+
+.ml-2 {
+    margin-left: 0.5em;
+}

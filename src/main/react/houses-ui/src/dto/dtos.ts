@@ -36,6 +36,8 @@ export interface SearchDto {
     page: number;
     pageSize: number;
     onlyFilled: boolean;
+    onlyOpen: boolean;
+    onlyWithGreeting: boolean;
 }
 
 export interface AvailableDataDto {

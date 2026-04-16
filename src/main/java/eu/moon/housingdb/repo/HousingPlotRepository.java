@@ -36,8 +36,12 @@ public interface HousingPlotRepository extends JpaRepository<HousingPlot, Long> 
             and (:estateOwner is null or lower(plot.estateOwnerName) like :estateOwner)
             and (:greeting is null or lower(plot.greeting) like :greeting)
             and (:onlyFilled = false or plot.lastUpdated is not null)
+            and (:onlyOpen = false or plot.visitorsAllowed = true)
+            and (:onlyWithGreeting = false or plot.greeting is not null or plot.greeting <> '')
             and (:searchTags = false or plot.tagA in :tags or plot.tagB in :tags or plot.tagC in :tags)
         order by world.name, territory.name, ward.wardNumber, plot.plotNumber
         """)
-    Page<SearchResultPlotDto> searchPlots(Integer world, Integer territoryId, Integer wardNumber, String estateOwner, String greeting, Set<HousingTag> tags, boolean searchTags, boolean onlyFilled, Pageable pageable);
+    Page<SearchResultPlotDto> searchPlots(Integer world, Integer territoryId, Integer wardNumber, String estateOwner, String greeting, Set<HousingTag> tags,
+                                          boolean searchTags, boolean onlyFilled, boolean onlyOpen, boolean onlyWithGreeting,
+                                          Pageable pageable);
 }

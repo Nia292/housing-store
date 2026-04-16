@@ -16,6 +16,8 @@ public class SearchDto {
     private int page;
     private int pageSize;
     private boolean onlyFilled;
+    private boolean onlyOpen;
+    private boolean onlyWithGreeting;
     private Set<HousingTag> tags;
 
     public String ownerQuery() {
