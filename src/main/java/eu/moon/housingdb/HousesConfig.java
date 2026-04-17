@@ -11,6 +11,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "houses")
 public class HousesConfig {
     private String passwords;
+    private String userFile;
 
     public List<String> allowedPasswords() {
         return List.of(passwords.split(","));
