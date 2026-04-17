@@ -1,10 +1,12 @@
 import type {Callback} from "../../types.ts";
 import {type AvailableTerritoryDto, type AvailableWorldDto, HousingTag, type SearchDto} from "../dto/dtos.ts";
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {Dropdown} from "primereact/dropdown";
 import {InputText} from "primereact/inputtext";
 import {MultiSelect} from "primereact/multiselect";
 import {Checkbox} from "primereact/checkbox";
+import { ToggleButton } from "primereact/togglebutton";
+import {PrimeReactContext} from "primereact/api";
 
 function WorldFilter(props: {selectedWorld: number | null, availableWorlds: AvailableWorldDto[], selectWorld: Callback<number>}) {
     return (<div className="flex flex-column">
@@ -72,8 +74,17 @@ export function SearchBar(props: SearchBarProps) {
     const [hasGreeting, setHasGreeting] = useState<boolean>(false);
     const [onlyOpen, setOnlyOpen] = useState<boolean>(false);
     const [selectedTags, setSelectedTags] = useState<HousingTag[]>([]);
+    const [darkMode, setDarkMode] = useState<boolean>(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
+    const { changeTheme } = useContext(PrimeReactContext);
 
+    useEffect(() => {
+        const theme = darkMode ? "lara-light-indigo" : "lara-dark-indigo";
+        const previousTheme = darkMode ? "lara-dark-indigo" : "lara-light-indigo";
+        if (changeTheme) {
+            changeTheme(previousTheme, theme, "theme-link", () => console.log('Done!'));
+        }
+    }, [darkMode])
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -115,6 +126,12 @@ export function SearchBar(props: SearchBarProps) {
                 <Checkbox inputId="is-open" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.checked ?? false)} />
                 <label className="ml-2" htmlFor="is-open">Only Accessible</label>
             </div>
+        </div>
+        <div style={{marginLeft: "auto"}}>
+            <ToggleButton onIcon="pi pi-moon" offIcon="pi pi-sun"
+                          offLabel="Not Luna Mode"
+                          onLabel="Luna Mode"
+                          checked={darkMode} onChange={(e) => setDarkMode(e.value)} />
         </div>
     </div>)
 }

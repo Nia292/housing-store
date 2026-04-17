@@ -129,22 +129,24 @@ function App() {
                    when an entry is selected and the housing info sign is shown. Some filters are available. Filters are conditional-and filters, except when choosing multiple tags (= one-of)
                </p>
                <SearchBar onSearchChange={setDeferredSearch} availableTerritories={availableTerritories} availableWorlds={availableWorlds}/>
-               <DataTable value={searchResults}
-                          size="small"
-                          loading={loading}
-                          scrollable scrollHeight="calc(100vh - 240px)"
-               >
-                   <Column style={{width: "100px"}} field="worldName" header="World"></Column>
-                   <Column style={{width: "100px"}} field="territoryName" header="Area"></Column>
-                   <Column style={{width: "130px"}} header="Plot" body={DrawPlotName}></Column>
-                   <Column style={{width: "150px"}} header="Owner" body={DrawName}></Column>
-                   <Column field="plot.greeting" header="Greeting"></Column>
-                   <Column style={{width: "450px"}} header="Tags" body={DrawTags}></Column>
-                   <Column style={{width: "200px"}} field="plot.lastUpdated" header="Last Update"
-                           body={LastUpdatedDate}></Column>
-                   <Column style={{width: "200px"}} field="plot.lastGreetingUpdated" header="Last Update (Greeting)"
-                           body={LastGreetingUpdateDate}></Column>
-               </DataTable>
+               <div className="prime-demo-card" style={{marginTop: "8px"}}>
+                   <DataTable value={searchResults}
+                              size="small"
+                              loading={loading}
+                              scrollable scrollHeight="calc(100vh - 320px)"
+                   >
+                       <Column style={{width: "100px"}} field="worldName" header="World"></Column>
+                       <Column style={{width: "100px"}} field="territoryName" header="Area"></Column>
+                       <Column style={{width: "130px"}} header="Plot" body={DrawPlotName}></Column>
+                       <Column style={{width: "150px"}} header="Owner" body={DrawName}></Column>
+                       <Column field="plot.greeting" header="Greeting"></Column>
+                       <Column style={{width: "450px"}} header="Tags" body={DrawTags}></Column>
+                       <Column style={{width: "200px"}} field="plot.lastUpdated" header="Last Update"
+                               body={LastUpdatedDate}></Column>
+                       <Column style={{width: "200px"}} field="plot.lastGreetingUpdated" header="Last Update (Greeting)"
+                               body={LastGreetingUpdateDate}></Column>
+                   </DataTable>
+               </div>
                <div>
                    <Paginator first={page * 60}
                               rows={pageSize}
