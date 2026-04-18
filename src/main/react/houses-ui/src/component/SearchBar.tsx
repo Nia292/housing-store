@@ -1,17 +1,19 @@
 import type {Callback} from "../../types.ts";
 import {type AvailableTerritoryDto, type AvailableWorldDto, HousingTag, type SearchDto} from "../dto/dtos.ts";
-import {useContext, useEffect, useState} from "react";
+import {useContext, useEffect, useMemo, useState} from "react";
 import {Dropdown} from "primereact/dropdown";
 import {InputText} from "primereact/inputtext";
 import {MultiSelect} from "primereact/multiselect";
 import {Checkbox} from "primereact/checkbox";
-import { ToggleButton } from "primereact/togglebutton";
+import {ToggleButton} from "primereact/togglebutton";
 import {PrimeReactContext} from "primereact/api";
+import {type SetURLSearchParams, useSearchParams} from "react-router-dom";
 
 function WorldFilter(props: {selectedWorld: number | null, availableWorlds: AvailableWorldDto[], selectWorld: Callback<number>}) {
     return (<div className="flex flex-column">
         <label htmlFor="world-filter">Select World</label>
         <Dropdown
+            filter
             value={props.selectedWorld}
             options={props.availableWorlds}
             showClear={true}
@@ -28,6 +30,7 @@ function TerritoryFilter(props: {selectedTerritory: number | null, availableTerr
     return (<div className="flex flex-column">
         <label htmlFor="territory-filter">Select Area</label>
         <Dropdown
+            filter
             id="territory-filter"
             value={props.selectedTerritory}
             options={props.availableTerritories}
@@ -58,6 +61,31 @@ function TagFilter(props: {inputId: string, selectedTags: HousingTag[], setSelec
     </div>)
 }
 
+function tryParseNumber(v: string | null | undefined): number | null {
+    if (v == null) {
+        return null;
+    }
+    const num = Number(v);
+    if (Number.isNaN(num)) {
+        return null;
+    }
+    return num;
+}
+
+function updateQuery(key: string, value: number | null, setSearchParams: SetURLSearchParams): void {
+    if (value == null) {
+        setSearchParams(prev => {
+            prev.delete(key);
+            return prev;
+        }, {replace: true})
+    } else {
+        setSearchParams(prev => {
+            prev.set(key, value.toString(10));
+            return prev;
+        }, {replace: true})
+    }
+}
+
 interface SearchBarProps {
     availableWorlds: AvailableWorldDto[];
     availableTerritories: AvailableTerritoryDto[];
@@ -66,10 +94,10 @@ interface SearchBarProps {
 }
 
 export function SearchBar(props: SearchBarProps) {
+    const [searchParams, setSearchParams] = useSearchParams({world: "403"});
+
     const [greetingSearch, setGreetingSearch] = useState<string>('');
     const [onwerSearch, setOwnerSearch] = useState<string>('');
-    const [selectedWorld, setSelectedWorld] = useState<number | null>(403); // 403 = Raiden
-    const [selectedTerritory, setSelectedTerritory] = useState<number | null>(null);
     const [onlyCollected, setOnlyCollected] = useState<boolean>(true);
     const [hasGreeting, setHasGreeting] = useState<boolean>(false);
     const [onlyOpen, setOnlyOpen] = useState<boolean>(false);
@@ -78,13 +106,19 @@ export function SearchBar(props: SearchBarProps) {
 
     const { changeTheme } = useContext(PrimeReactContext);
 
+    const selectedWorld = useMemo(() => tryParseNumber(searchParams.get('world')), [searchParams]);
+    const setSelectedWorld = (world: number | null) => updateQuery("world", world, setSearchParams);
+
+    const selectedTerritory = useMemo(() => tryParseNumber(searchParams.get('territory')), [searchParams]);
+    const setSelectedTerritory = (territory: number | null) => updateQuery("territory", territory, setSearchParams);
+
     useEffect(() => {
         const theme = darkMode ? "lara-light-indigo" : "lara-dark-indigo";
         const previousTheme = darkMode ? "lara-dark-indigo" : "lara-light-indigo";
         if (changeTheme) {
             changeTheme(previousTheme, theme, "theme-link", () => console.log('Done!'));
         }
-    }, [darkMode])
+    }, [darkMode]);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
