@@ -1,10 +1,8 @@
 package eu.moon.housingdb;
 
-import eu.moon.housingdb.domain.HousingFlags;
-import eu.moon.housingdb.domain.HousingPlot;
-import eu.moon.housingdb.domain.HousingTag;
-import eu.moon.housingdb.domain.HousingWard;
+import eu.moon.housingdb.domain.*;
 import eu.moon.housingdb.dto.*;
+import eu.moon.housingdb.repo.FavoritesRepository;
 import eu.moon.housingdb.repo.HousingPlotRepository;
 import eu.moon.housingdb.repo.HousingWardRepository;
 import jakarta.persistence.EntityManager;
@@ -12,6 +10,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +26,7 @@ import java.util.Objects;
 public class HousingController {
     private final HousingWardRepository housingWardRepository;
     private final HousingPlotRepository housingPlotRepository;
+    private final FavoritesRepository favoriteRepository;
     private final EntityManager entityManager;
 
     @GetMapping("/world/{worldId}/territory/{territoryId}/wards/{wardNumber}")
@@ -109,5 +110,37 @@ public class HousingController {
                         housingPlotRepository.save(plot1);
                     }
                 });
+    }
+
+    @Transactional
+    @PostMapping("/favorite/{worldId}/{territoryId}/{wardNumber}/{plot}/{isFavorite}")
+    public void setFavorite(@PathVariable("worldId") short worldId,
+                            @PathVariable("territoryId") short territoryId,
+                            @PathVariable("wardNumber") short wardNumber,
+                            @PathVariable("plot") short plot,
+                            @PathVariable("isFavorite") boolean isFavorite) {
+        var username = getCurrentUserName();
+        housingPlotRepository.findPlot(worldId, territoryId, wardNumber, plot)
+                .ifPresent(housingPlot -> {
+                    if (isFavorite) {
+                        var fav = new Favorite();
+                        fav.setPlot(housingPlot);
+                        fav.setUsername(username);
+                        favoriteRepository.save(fav);
+                    } else {
+                        favoriteRepository.deleteByPlotAndUsername(housingPlot, username);
+                    }
+                });
+    }
+
+    @GetMapping("/favorites")
+    public List<Long> getFavoritePlotIds() {
+        var username = getCurrentUserName();
+        return favoriteRepository.findIdsByUsername(username);
+    }
+
+    private String getCurrentUserName() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
     }
 }

@@ -1,23 +1,29 @@
-export interface SearchResultEntryDto {
-    worldName: string;
-    territoryName: string;
-    ward: number;
-    plot: {
-        plotNumber: number;
-        estateOwnerName: string;
-        tagA: HousingTag;
-        tagB: HousingTag;
-        tagC: HousingTag;
-        flags: string;
-        greeting: string;
-        lastUpdated: string;
-        lastGreetingUpdated: string;
+export interface HousingPlot {
+    id: number;
+    plotNumber: number;
+    estateOwnerName: string;
+    tagA: HousingTag;
+    tagB: HousingTag;
+    tagC: HousingTag;
+    flags: string;
+    greeting: string;
+    lastUpdated: string;
+    lastGreetingUpdated: string;
 
-        freeCompany: boolean;
-        owned: boolean;
-        visitorsAllowed: boolean;
-        built: boolean;
-    }
+    freeCompany: boolean;
+    owned: boolean;
+    visitorsAllowed: boolean;
+    built: boolean;
+}
+
+export interface SearchResultEntryDto {
+    key: string;
+    worldName: string;
+    worldId: number;
+    territoryName: string;
+    territoryId: number;
+    ward: number;
+    plot: HousingPlot;
 }
 
 export interface SearchResultDto {
