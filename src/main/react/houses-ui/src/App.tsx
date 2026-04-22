@@ -9,61 +9,9 @@ import {
     type SearchResultDto,
     type SearchResultEntryDto
 } from "./dto/dtos.ts";
-import {DataTable} from "primereact/datatable";
-import {Column} from 'primereact/column';
 import {SearchBar} from "./component/SearchBar.tsx";
 import {Paginator, type PaginatorPageChangeEvent} from "primereact/paginator";
-import {ToggleButton} from "primereact/togglebutton";
-
-const dateFormat = new Intl.DateTimeFormat(navigator.language, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: undefined
-})
-
-
-const DrawTags = (row: SearchResultEntryDto) => {
-    return [row.plot.tagA, row.plot.tagB, row.plot.tagC]
-        .filter(value => value != "None")
-        .join(", ");
-}
-
-const DrawPlotName = (row: SearchResultEntryDto) => {
-    const ward = row.ward + 1;
-    return `Ward ${ward}, Plot ${row.plot.plotNumber}`;
-}
-
-const LastUpdatedDate = (row: SearchResultEntryDto) => {
-    if (row.plot.lastUpdated == null) {
-        return "-"
-    }
-    return dateFormat.format(new Date(row.plot.lastUpdated));
-}
-
-const LastGreetingUpdateDate = (row: SearchResultEntryDto) => {
-    if (row.plot.lastGreetingUpdated == null) {
-        return "-"
-    }
-    return dateFormat.format(new Date(row.plot.lastGreetingUpdated));
-}
-
-
-const DrawName = (row: SearchResultEntryDto) => {
-    if (!row.plot.lastUpdated) {
-        return '';
-    }
-    if (!row.plot.built) {
-        return <span className="for-sale">For Sale</span>
-    }
-    const label = row.plot.freeCompany ? `<${row.plot.estateOwnerName}>` : row.plot.estateOwnerName;
-    if (!row.plot.visitorsAllowed) {
-        return <span className="no-visitor">{label}</span>
-    }
-    return <span className="yes-visitor">{label}</span>
-}
+import {PlotTable} from "./component/PlotTable.tsx";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AppProps {
@@ -105,6 +53,7 @@ class App extends React.Component<AppProps, AppState> {
                 });
             });
         this.asyncLoadFavorites();
+        this.onSearchOrPageChange();
     }
 
     onSearchOrPageChange() {
@@ -173,14 +122,6 @@ class App extends React.Component<AppProps, AppState> {
         this.asyncSetFavorite(row, favorite);
     }
 
-    DrawFavorites = (row: SearchResultEntryDto) => {
-        return (
-            <ToggleButton disabled={this.state.favoritesPending} checked={this.state.favorites.includes(row.plot.id)}
-                          onChange={(e) => this.onFavoritesToggle(row, e.value)} onLabel="" offLabel=""
-                          onIcon="pi pi-heart" offIcon="pi pi-heart"/>
-        );
-    }
-
     setDeferredSearch = (search: SearchDto | null) => {
         this.setState({deferredSearch: search}, () => this.onSearchOrPageChange());
     }
@@ -202,25 +143,13 @@ class App extends React.Component<AppProps, AppState> {
                                availableTerritories={this.state.availableTerritories}
                                availableWorlds={this.state.availableWorlds}/>
                     <div className="prime-demo-card" style={{marginTop: "8px"}}>
-                        <DataTable value={this.state.searchResults}
-                                   size="small"
-                                   loading={this.state.loading}
-                                   dataKey="key"
-                                   scrollable scrollHeight="calc(100vh - 320px)"
+                        <PlotTable loading={this.state.loading}
+                                   rows={this.state.searchResults}
+                                   favorites={this.state.favorites}
+                                   favoritesPending={this.state.favoritesPending}
+                                   onFavoritesToggle={this.onFavoritesToggle}
                         >
-                            <Column style={{width: "100px"}} field="worldName" header="World"></Column>
-                            <Column style={{width: "100px"}} field="territoryName" header="Area"></Column>
-                            <Column style={{width: "130px"}} header="Plot" body={DrawPlotName}></Column>
-                            <Column style={{width: "150px"}} header="Owner" body={DrawName}></Column>
-                            <Column field="plot.greeting" header="Greeting"></Column>
-                            <Column style={{width: "450px"}} header="Tags" body={DrawTags}></Column>
-                            <Column style={{width: "200px"}} field="plot.lastUpdated" header="Last Update"
-                                    body={LastUpdatedDate}></Column>
-                            <Column style={{width: "200px"}} field="plot.lastGreetingUpdated"
-                                    header="Last Update (Greeting)"
-                                    body={LastGreetingUpdateDate}></Column>
-                            <Column body={this.DrawFavorites}></Column>
-                        </DataTable>
+                        </PlotTable>
                     </div>
                     <div>
                         <Paginator first={this.state.page * 60}
