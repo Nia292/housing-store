@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import * as React from 'react'
 import {PrimeReactProvider} from 'primereact/api';
 import axios from 'axios';
 import {
@@ -65,138 +65,175 @@ const DrawName = (row: SearchResultEntryDto) => {
     return <span className="yes-visitor">{label}</span>
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface AppProps {
+}
 
-function App() {
-    const [favorites, setFavorites] = useState<number[]>([]);
-    const [favoritesPending, setFavoritesPending] = useState<boolean>(false);
-    const [availableWorlds, setAvailableWorlds] = useState<AvailableWorldDto[]>([]);
-    const [availableTerritories, setAvailableTerritories] = useState<AvailableTerritoryDto[]>([]);
+interface AppState {
+    availableWorlds: AvailableWorldDto[];
+    availableTerritories: AvailableTerritoryDto[];
+    deferredSearch: SearchDto | null;
+    favorites: number[];
+    favoritesPending: boolean;
+    loading: boolean;
+    page: number;
+    pageSize: number;
+    searchResults: SearchResultEntryDto[];
+    totalRecords: number;
+}
 
-    const [searchResults, setSearchResults] = useState<SearchResultEntryDto[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+class App extends React.Component<AppProps, AppState> {
+    state = {
+        availableWorlds: [],
+        availableTerritories: [],
+        deferredSearch: null,
+        favorites: [],
+        favoritesPending: false,
+        loading: false,
+        page: 0,
+        pageSize: 60,
+        searchResults: [],
+        totalRecords: 0,
+    } satisfies AppState as AppState;
 
-    const [page, setPage] = useState<number>(0);
-    const [pageSize, setPageSize] = useState<number>(60);
-    const [totalRecords, setTotalRecords] = useState<number>(0);
-
-    const [deferredSearch, setDeferredSearch] = useState<SearchDto | null>(null);
-
-    useEffect(() => {
+    componentDidMount() {
         axios.get<AvailableDataDto>("/api/available-data")
             .then(value => {
-                setAvailableWorlds(value.data.worlds);
-                setAvailableTerritories(value.data.territories);
-            })
-        asyncLoadFavorites();
-    }, []);
+                this.setState({
+                    availableWorlds: value.data.worlds,
+                    availableTerritories: value.data.territories,
+                });
+            });
+        this.asyncLoadFavorites();
+    }
 
-    useEffect(() => {
-        if (deferredSearch == null) {
+    onSearchOrPageChange() {
+        if (this.state.deferredSearch == null) {
             return;
         }
 
         const search: SearchDto = {
-            ...deferredSearch,
-            page,
-            pageSize
+            ...this.state.deferredSearch,
+            page: this.state.page,
+            pageSize: this.state.pageSize
         };
 
-        setLoading(true)
+        this.setState({loading: true});
         axios.post<SearchResultDto>("/api/search", search)
             .then(value => {
-                setSearchResults(value.data.plots);
-                setLoading(false)
-                setTotalRecords(value.data.totalElementCount)
+                this.setState({
+                    searchResults: value.data.plots,
+                    loading: false,
+                    totalRecords: value.data.totalElementCount
+                });
             })
             .catch(err => {
                 console.error(err);
-                setLoading(false);
+                this.setState({loading: false});
             })
-    }, [deferredSearch, page, pageSize]);
+    }
 
-    function asyncLoadFavorites() {
-        setFavoritesPending(true)
+    asyncLoadFavorites() {
+        this.setState({favoritesPending: true});
         axios.get<number[]>(`/api/favorites`)
             .then(value => {
-                setFavorites(value.data);
-                setFavoritesPending(false);
+                this.setState({
+                    favorites: value.data,
+                    favoritesPending: false,
+                });
             })
             .catch((err) => {
                 console.error(err);
-                setFavoritesPending(false)
+                this.setState({
+                    favoritesPending: false
+                });
             })
     }
 
-    function asyncSetFavorite(plot: SearchResultEntryDto, isFavorite: boolean): void {
-        setFavoritesPending(true);
+    asyncSetFavorite(plot: SearchResultEntryDto, isFavorite: boolean): void {
+        this.setState({favoritesPending: true});
         axios.post(`/api/favorite/${plot.worldId}/${plot.territoryId}/${plot.ward}/${plot.plot.plotNumber}/${isFavorite}`)
             .then(() => {
-                asyncLoadFavorites();
+                this.asyncLoadFavorites();
             })
             .catch((err) => {
                 console.error(err);
-                setFavoritesPending(false)
+                this.setState({favoritesPending: false});
             })
     }
 
-    function onPageChange(pageChange: PaginatorPageChangeEvent) {
-        setPage(pageChange.page);
-        setPageSize(pageChange.rows);
+    onPageChange = (pageChange: PaginatorPageChangeEvent) => {
+        this.setState({
+            page: pageChange.page,
+            pageSize: pageChange.rows,
+        }, () => this.onSearchOrPageChange());
     }
 
-    function onFavoritesToggle(row: SearchResultEntryDto, favorite: boolean): void {
-        asyncSetFavorite(row, favorite);
+    onFavoritesToggle = (row: SearchResultEntryDto, favorite: boolean) => {
+        this.asyncSetFavorite(row, favorite);
     }
 
-    const DrawFavorites = (row: SearchResultEntryDto) => {
-        return (<ToggleButton disabled={favoritesPending} checked={favorites.includes(row.plot.id)} onChange={(e) => onFavoritesToggle(row, e.value)} onLabel="" offLabel="" onIcon="pi pi-heart" offIcon="pi pi-heart" />)
+    DrawFavorites = (row: SearchResultEntryDto) => {
+        return (
+            <ToggleButton disabled={this.state.favoritesPending} checked={this.state.favorites.includes(row.plot.id)}
+                          onChange={(e) => this.onFavoritesToggle(row, e.value)} onLabel="" offLabel=""
+                          onIcon="pi pi-heart" offIcon="pi pi-heart"/>
+        );
     }
 
-    return (
-        <PrimeReactProvider>
-            <div style={{marginLeft: "12rem", marginRight: "12rem"}}>
-                <h1>Housing Index</h1>
-                <p>
-                    A searchable housing index. Plot information including owner and tags are updated on viewing a ward.
-                    Greetings are only updated
-                    when an entry is selected and the housing info sign is shown. Some filters are available. Filters
-                    are conditional-and filters, except when choosing multiple tags (= one-of)
-                </p>
-                <SearchBar onSearchChange={setDeferredSearch} availableTerritories={availableTerritories}
-                           availableWorlds={availableWorlds}/>
-                <div className="prime-demo-card" style={{marginTop: "8px"}}>
-                    <DataTable value={searchResults}
-                               size="small"
-                               loading={loading}
-                               dataKey="key"
-                               cellMemo={false}
-                               scrollable scrollHeight="calc(100vh - 320px)"
-                    >
-                        <Column style={{width: "100px"}} field="worldName" header="World"></Column>
-                        <Column style={{width: "100px"}} field="territoryName" header="Area"></Column>
-                        <Column style={{width: "130px"}} header="Plot" body={DrawPlotName}></Column>
-                        <Column style={{width: "150px"}} header="Owner" body={DrawName}></Column>
-                        <Column field="plot.greeting" header="Greeting"></Column>
-                        <Column style={{width: "450px"}} header="Tags" body={DrawTags}></Column>
-                        <Column style={{width: "200px"}} field="plot.lastUpdated" header="Last Update"
-                                body={LastUpdatedDate}></Column>
-                        <Column style={{width: "200px"}} field="plot.lastGreetingUpdated"
-                                header="Last Update (Greeting)"
-                                body={LastGreetingUpdateDate}></Column>
-                        <Column body={DrawFavorites}></Column>
-                    </DataTable>
+    setDeferredSearch = (search: SearchDto | null) => {
+        this.setState({deferredSearch: search}, () => this.onSearchOrPageChange());
+    }
+
+    render() {
+        return (
+            <PrimeReactProvider>
+                <div style={{marginLeft: "12rem", marginRight: "12rem"}}>
+                    <h1>Housing Index</h1>
+                    <p>
+                        A searchable housing index. Plot information including owner and tags are updated on viewing a
+                        ward.
+                        Greetings are only updated
+                        when an entry is selected and the housing info sign is shown. Some filters are available.
+                        Filters
+                        are conditional-and filters, except when choosing multiple tags (= one-of)
+                    </p>
+                    <SearchBar onSearchChange={this.setDeferredSearch}
+                               availableTerritories={this.state.availableTerritories}
+                               availableWorlds={this.state.availableWorlds}/>
+                    <div className="prime-demo-card" style={{marginTop: "8px"}}>
+                        <DataTable value={this.state.searchResults}
+                                   size="small"
+                                   loading={this.state.loading}
+                                   dataKey="key"
+                                   scrollable scrollHeight="calc(100vh - 320px)"
+                        >
+                            <Column style={{width: "100px"}} field="worldName" header="World"></Column>
+                            <Column style={{width: "100px"}} field="territoryName" header="Area"></Column>
+                            <Column style={{width: "130px"}} header="Plot" body={DrawPlotName}></Column>
+                            <Column style={{width: "150px"}} header="Owner" body={DrawName}></Column>
+                            <Column field="plot.greeting" header="Greeting"></Column>
+                            <Column style={{width: "450px"}} header="Tags" body={DrawTags}></Column>
+                            <Column style={{width: "200px"}} field="plot.lastUpdated" header="Last Update"
+                                    body={LastUpdatedDate}></Column>
+                            <Column style={{width: "200px"}} field="plot.lastGreetingUpdated"
+                                    header="Last Update (Greeting)"
+                                    body={LastGreetingUpdateDate}></Column>
+                            <Column body={this.DrawFavorites}></Column>
+                        </DataTable>
+                    </div>
+                    <div>
+                        <Paginator first={this.state.page * 60}
+                                   rows={this.state.pageSize}
+                                   totalRecords={this.state.totalRecords}
+                                   rowsPerPageOptions={[20, 30, 60, 120]}
+                                   onPageChange={this.onPageChange}
+                        />
+                    </div>
                 </div>
-                <div>
-                    <Paginator first={page * 60}
-                               rows={pageSize}
-                               totalRecords={totalRecords}
-                               rowsPerPageOptions={[20, 30, 60, 120]}
-                               onPageChange={onPageChange}
-                    />
-                </div>
-            </div>
-        </PrimeReactProvider>
-    )
+            </PrimeReactProvider>
+        );
+    }
 }
 
 export default App
