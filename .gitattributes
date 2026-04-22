@@ -3,3 +3,4 @@
 *.jar binary
 
 src/main/resources/static/** linguist-vendored
+src/main/react/houses-ui/public/themes/** linguist-vendored
