@@ -10,6 +10,10 @@ public class HousingFlags {
         return (value & 1 << 1) != 0;
     }
 
+    public static boolean isHasGreeting(short value) {
+        return (value & 1 << 2) != 0;
+    }
+
     public static boolean isHouseBuilt(short value) {
         return (value & 1 << 3) != 0;
     }

@@ -12,25 +12,10 @@ public class SearchDto {
     private Integer wardNumber;
     private String owner;
     private String greeting;
-    private boolean isOpen;
     private int page;
     private int pageSize;
     private boolean onlyFilled;
     private boolean onlyOpen;
     private boolean onlyWithGreeting;
     private Set<HousingTag> tags;
-
-    public String ownerQuery() {
-        if (owner == null || owner.trim().isBlank()) {
-            return null;
-        }
-        return "%" + owner.toLowerCase() + "%";
-    }
-
-    public String greetingQuery() {
-        if (greeting == null || greeting.trim().isBlank()) {
-            return null;
-        }
-        return "%" + greeting.toLowerCase() + "%";
-    }
 }

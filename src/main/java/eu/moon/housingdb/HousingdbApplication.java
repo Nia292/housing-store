@@ -5,11 +5,13 @@ import eu.moon.housingdb.domain.HousingTerritory;
 import eu.moon.housingdb.domain.HousingWard;
 import eu.moon.housingdb.domain.HousingWorld;
 import eu.moon.housingdb.repo.HousingWorldRepository;
+import eu.moon.housingdb.search.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.InputStreamReader;
@@ -20,9 +22,12 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @EnableScheduling
+@EnableAsync
 public class HousingdbApplication implements InitializingBean {
 
     private final HousingWorldRepository housingWorldRepository;
+    private final SearchService searchService;
+    private final HousingUpdater housingUpdater;
 
     public static void main(String[] args) {
         SpringApplication.run(HousingdbApplication.class, args);
@@ -42,6 +47,8 @@ public class HousingdbApplication implements InitializingBean {
                         initializeWorldIfNeeded(name, id);
                     }
                 });
+        searchService.buildIndex();
+        housingUpdater.migrateGreetingFlag();
     }
 
     private void initializeWorldIfNeeded(String worldName, int worldId) {

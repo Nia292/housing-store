@@ -124,7 +124,6 @@ export function SearchBar(props: SearchBarProps) {
         const timeout = setTimeout(() => {
             const searchDto: SearchDto = {
                 owner: onwerSearch,
-                isOpen: true,
                 worldId: selectedWorld,
                 greeting: greetingSearch,
                 territoryId: selectedTerritory,

@@ -47,6 +47,10 @@ public class HousingPlot {
     @Column(name = "is_free_company")
     private boolean isFreeCompany;
 
+    // If the housing flags ("flags") have the "has greeting" bit set
+    @Column(name = "has_greeting")
+    private Boolean hasGreeting;
+
     @Column(name = "greeting")
     private String greeting;
 

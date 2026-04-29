@@ -37,7 +37,6 @@ export interface SearchDto {
     wardNumber: number | null;
     owner: string | null;
     greeting: string | null;
-    isOpen: boolean | null;
     tags: HousingTag[];
     page: number;
     pageSize: number;
