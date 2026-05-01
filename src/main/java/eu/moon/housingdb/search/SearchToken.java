@@ -24,6 +24,7 @@ public abstract class SearchToken {
             case "status" -> new StatusToken(tokenValue);
             case "ward" -> new WardToken(tokenValue);
             case "plot" -> new PlotToken(tokenValue);
+            case "area" -> new AreaToken(tokenValue);
             default -> throw new RuntimeException("Unknown token key: " + tokenKey);
         };
     }
@@ -38,7 +39,11 @@ public abstract class SearchToken {
                 case "collected" -> factory.exists().field("lastUpdate").toPredicate();
                 case "open" -> factory.match().field("open").matching(true).toPredicate();
                 case "closed" -> factory.match().field("open").matching(false).toPredicate();
-                case "collected-greeting'" -> factory.exists().field("greeting").toPredicate();
+                case "collected-greeting" -> factory.exists().field("greeting").toPredicate();
+                case "misses-greeting" -> factory.and(
+                        factory.not(factory.exists().field("greeting")).toPredicate(),
+                        factory.match().field("hasGreetingFlag").matching(true).toPredicate()
+                ).toPredicate();
                 default -> throw new RuntimeException("Unknown status: " + status);
             };
         }
@@ -51,6 +56,17 @@ public abstract class SearchToken {
         @Override
         public SearchPredicate toPredicate(TypedSearchPredicateFactory<?> factory) {
             return factory.match().field("plotNumber").matching(Integer.parseInt(plot) - 1).toPredicate();
+        }
+    }
+
+
+    @RequiredArgsConstructor
+    private static class AreaToken extends SearchToken {
+        private final String territoryId;
+
+        @Override
+        public SearchPredicate toPredicate(TypedSearchPredicateFactory<?> factory) {
+            return factory.match().field("territoryId").matching(Integer.parseInt(territoryId)).toPredicate();
         }
     }
 

@@ -35,6 +35,10 @@ html {
     margin-left: 0.5em;
 }
 
+.font-bold {
+    font-weight: bold;
+}
+
 .prime-demo-card {
     background: var(--surface-card);
     border: var(--card-border);

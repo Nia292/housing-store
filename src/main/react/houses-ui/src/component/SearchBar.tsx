@@ -25,23 +25,6 @@ function WorldFilter(props: {selectedWorld: number | null, availableWorlds: Avai
     </div>)
 }
 
-function TerritoryFilter(props: {selectedTerritory: number | null, availableTerritories: AvailableWorldDto[], setSelectedTerritory: Callback<number>}) {
-    return (<div className="flex flex-column">
-        <label htmlFor="territory-filter">Select Area</label>
-        <Dropdown
-            filter
-            id="territory-filter"
-            value={props.selectedTerritory}
-            options={props.availableTerritories}
-            showClear={true}
-            onChange={(e) => props.setSelectedTerritory(e.value)}
-            optionLabel="name"
-            optionValue="id"
-            style={{width: "200px"}}
-        />
-    </div>)
-}
-
 const availableTags: HousingTag[] = Object.keys(HousingTag).filter(value => isNaN(Number(value))) as HousingTag[];
 
 function TagFilter(props: {inputId: string, selectedTags: HousingTag[], setSelectedTags: Callback<HousingTag[]>}) {
@@ -88,7 +71,7 @@ export function SearchBar(props: SearchBarProps) {
     const [searchParams, setSearchParams] = useSearchParams({world: "403"});
 
     const [selectedTags, setSelectedTags] = useState<HousingTag[]>([]);
-    const [searchKeys, setSearchKeys] = useState<string[]>(["status:collected"]);
+    const [searchKeys, setSearchKeys] = useState<string[]>(["status: collected"]);
     const [conjunctive, setConjunctive] = useState<boolean>(true);
     const [darkMode, setDarkMode] = useState<boolean>(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
@@ -96,9 +79,6 @@ export function SearchBar(props: SearchBarProps) {
 
     const selectedWorld = useMemo(() => tryParseNumber(searchParams.get('world')), [searchParams]);
     const setSelectedWorld = (world: number | null) => updateQuery("world", world, setSearchParams);
-
-    const selectedTerritory = useMemo(() => tryParseNumber(searchParams.get('territory')), [searchParams]);
-    const setSelectedTerritory = (territory: number | null) => updateQuery("territory", territory, setSearchParams);
 
     useEffect(() => {
         const theme = darkMode ? "lara-light-indigo" : "lara-dark-indigo";
@@ -112,7 +92,7 @@ export function SearchBar(props: SearchBarProps) {
         const timeout = setTimeout(() => {
             const searchDto: SearchDto = {
                 worldId: selectedWorld,
-                territoryId: selectedTerritory,
+                territoryId: null,
                 wardNumber: null,
                 tags: selectedTags,
                 page: 0, // set later
@@ -123,14 +103,20 @@ export function SearchBar(props: SearchBarProps) {
             props.onSearchChange(searchDto);
         }, 300);
         return () => clearTimeout(timeout);
-    }, [selectedWorld, selectedTerritory, selectedTags, conjunctive, searchKeys]);
+    }, [selectedWorld, selectedTags, conjunctive, searchKeys]);
 
     return (<div style={{display: "flex", flexDirection: "row"}}>
         <div style={{marginRight: "8px"}}><WorldFilter availableWorlds={props.availableWorlds} selectedWorld={selectedWorld} selectWorld={setSelectedWorld}/></div>
-        <div style={{marginRight: "8px"}}><TerritoryFilter availableTerritories={props.availableTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory}/></div>
         <div style={{marginRight: "8px"}}><TagFilter inputId="tag-filter" selectedTags={selectedTags} setSelectedTags={setSelectedTags}/></div>
         <div style={{marginRight: "8px"}}>
-            <GlobalSearch searchTerms={searchKeys} and={conjunctive} onSearchTermsChange={setSearchKeys} onAndChange={setConjunctive}></GlobalSearch>
+            <GlobalSearch
+                searchTerms={searchKeys}
+                and={conjunctive}
+                onSearchTermsChange={setSearchKeys}
+                onAndChange={setConjunctive}
+                availableTerritories={props.availableTerritories}
+            >
+            </GlobalSearch>
         </div>
         <div style={{marginLeft: "auto"}}>
             <ToggleButton onIcon="pi pi-moon" offIcon="pi pi-sun"

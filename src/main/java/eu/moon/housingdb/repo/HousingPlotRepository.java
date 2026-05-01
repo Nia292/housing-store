@@ -42,7 +42,7 @@ public interface HousingPlotRepository extends JpaRepository<HousingPlot, Long> 
     @Query("""
         select new eu.moon.housingdb.search.SearchablePlot(
                 plot.id, world.worldId, world.name, territory.territoryId, territory.name,
-                 ward.wardNumber, plot.plotNumber, plot.estateOwnerName, plot.greeting, plot.visitorsAllowed, plot.lastUpdated,
+                 ward.wardNumber, plot.plotNumber, plot.estateOwnerName, plot.greeting, plot.visitorsAllowed, plot.hasGreeting, plot.lastUpdated,
                  plot.tagA, plot.tagB, plot.tagC
          )
          from HousingWorld world
@@ -55,7 +55,7 @@ public interface HousingPlotRepository extends JpaRepository<HousingPlot, Long> 
     @Query("""
         select new eu.moon.housingdb.search.SearchablePlot(
                 plot.id, world.worldId, world.name, territory.territoryId, territory.name,
-                 ward.wardNumber, plot.plotNumber, plot.estateOwnerName, plot.greeting, plot.visitorsAllowed, plot.lastUpdated,
+                 ward.wardNumber, plot.plotNumber, plot.estateOwnerName, plot.greeting, plot.visitorsAllowed, plot.hasGreeting, plot.lastUpdated,
                  plot.tagA, plot.tagB, plot.tagC
          )
          from HousingWorld world
@@ -69,7 +69,7 @@ public interface HousingPlotRepository extends JpaRepository<HousingPlot, Long> 
     @Query("""
         select new eu.moon.housingdb.search.SearchablePlot(
                 plot.id, world.worldId, world.name, territory.territoryId, territory.name,
-                 ward.wardNumber, plot.plotNumber, plot.estateOwnerName, plot.greeting, plot.visitorsAllowed, plot.lastUpdated,
+                 ward.wardNumber, plot.plotNumber, plot.estateOwnerName, plot.greeting, plot.visitorsAllowed, plot.hasGreeting, plot.lastUpdated,
                  plot.tagA, plot.tagB, plot.tagC
          )
          from HousingWorld world

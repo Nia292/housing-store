@@ -4,10 +4,13 @@ import {ToggleButton} from "primereact/togglebutton";
 import {useRef, useState} from "react";
 import {OverlayPanel} from "primereact/overlaypanel";
 import {ListBox} from "primereact/listbox";
+import type {AvailableTerritoryDto} from "../dto/dtos.ts";
 
 export interface GlobalSearchProps {
     searchTerms: string[];
     and: boolean;
+    availableTerritories: AvailableTerritoryDto[];
+
     onSearchTermsChange: Callback<string[]>;
     onAndChange: Callback<boolean>
 }
@@ -16,8 +19,15 @@ const wardSearches = Array.from(Array(60).keys())
     .map(v => ({label: 'Ward ' + (v + 1), value: (v + 1)}));
 const plotSearches = Array.from(Array(60).keys())
     .map(v => ({label: 'Plot ' + (v + 1), value: (v + 1)}));
+const statusSearches = [
+    {label: <span><span className="font-bold">Collected</span> - Owner, tags and meta information has been collected</span>, value: 'collected'},
+    {label: <span><span className="font-bold">Collected Greeting</span> - The greeting text for this plot has been collected</span>, value: 'collected-greeting'},
+    {label: <span><span className="font-bold">Open</span> - Owner allows visitors in this house</span>, value: 'open'},
+    {label: <span><span className="font-bold">Closed</span> - Owner does not allow visitors in this house</span>, value: 'closed'},
+    {label: <span><span className="font-bold">Misses Greeting</span> - Basic information has been collected, but the greeting text is missing</span>, value: 'misses-greeting'},
+]
 
-const searchPhrases = ['owner:', 'not:', 'status:collected', 'status:open', 'status:closed', 'status:collected-greeting', 'ward:', 'plot:'];
+const searchPhrases = ['area:', 'owner:', 'not:', 'status:', 'ward:', 'plot:'];
 
 function onlyUnique<T>(value: T, index: number, array: T[]): boolean {
     return array.indexOf(value) === index;
@@ -41,8 +51,16 @@ export function GlobalSearch(props: GlobalSearchProps) {
 
     const overlayPanelWards = useRef<OverlayPanel>(null);
     const listBoxWards = useRef<ListBox>(null);
+
     const overlayPanelPlots = useRef<OverlayPanel>(null);
     const listBoxPlots = useRef<ListBox>(null);
+
+    const overlayPanelStatus = useRef<OverlayPanel>(null);
+    const listBoxStatus = useRef<ListBox>(null);
+
+    const overlayPanelTerritory = useRef<OverlayPanel>(null);
+    const listBoxTerritory = useRef<ListBox>(null);
+
     const autocomplete = useRef<AutoComplete>(null);
 
     function search(event: AutoCompleteCompleteEvent) {
@@ -51,9 +69,12 @@ export function GlobalSearch(props: GlobalSearchProps) {
 
     const itemTemplate = (item: string) => {
         const split = item.split(":");
+        const key = split[0];
+        const value = split[1];
         if (split.length >= 2) {
-            return <span><span
-                style={{fontWeight: "bolder", color: "lightgrey"}}>{split[0]}:</span><span>{split[1]}</span></span>
+            return (<span>
+                <span style={{fontWeight: "bolder", color: "lightgrey"}}>{key}:</span><span>{value}</span>
+            </span>)
         }
         return item;
     };
@@ -65,10 +86,15 @@ export function GlobalSearch(props: GlobalSearchProps) {
         } else if (event.value === 'plot:') {
             overlayPanelPlots?.current?.toggle(event.originalEvent, autocomplete.current?.getElement())
             setTimeout(() => listBoxPlots.current?.focus(), 20);
+        } else if (event.value === 'status:') {
+            overlayPanelStatus?.current?.toggle(event.originalEvent, autocomplete.current?.getElement())
+            setTimeout(() => listBoxStatus.current?.focus(), 20);
+        } else if (event.value === 'area:') {
+            overlayPanelTerritory?.current?.toggle(event.originalEvent, autocomplete.current?.getElement())
+            setTimeout(() => listBoxTerritory.current?.focus(), 20);
         } else {
             props.onSearchTermsChange([...props.searchTerms, event.value])
         }
-
     }
 
     function handleUnselect(value: string): void {
@@ -77,19 +103,29 @@ export function GlobalSearch(props: GlobalSearchProps) {
 
     function handleSelectWard(ward: number): void {
         props.onSearchTermsChange([...props.searchTerms, `ward: ${ward}`])
-        overlayPanelWards.current?.toggle(null);
+        overlayPanelWards.current?.hide();
     }
 
     function handleSelectPlot(ward: number): void {
         props.onSearchTermsChange([...props.searchTerms, `plot: ${ward}`])
-        overlayPanelPlots.current?.toggle(null);
+        overlayPanelPlots.current?.hide();
+    }
+
+    function handleSelectStatus(status: string): void {
+        props.onSearchTermsChange([...props.searchTerms, `status: ${status}`])
+        overlayPanelStatus.current?.hide();
+    }
+
+    function handleSelectTerritory(territory: string): void {
+        props.onSearchTermsChange([...props.searchTerms, `area: ${territory}`])
+        overlayPanelTerritory.current?.hide();
     }
 
 
     const listBoxWidth = autocomplete.current?.getElement()?.getBoundingClientRect().width ?? 400;
 
     return (<div className="flex flex-column">
-        <label htmlFor="global-search">Filter</label>
+        <label htmlFor="global-search">Search Houses</label>
         <div>
             <AutoComplete
                 ref={autocomplete}
@@ -118,6 +154,22 @@ export function GlobalSearch(props: GlobalSearchProps) {
                     onChange={(e) => handleSelectPlot(e.value)}
                     style={{maxHeight: "600px", overflow: "auto"}}
                     options={plotSearches} optionLabel="label"
+                />
+            </OverlayPanel>
+            <OverlayPanel ref={overlayPanelStatus} style={{width: listBoxWidth + 'px'}} >
+                <ListBox
+                    ref={listBoxStatus}
+                    onChange={(e) => handleSelectStatus(e.value)}
+                    style={{maxHeight: "600px", overflow: "auto"}}
+                    options={statusSearches} optionLabel="label"
+                />
+            </OverlayPanel>
+            <OverlayPanel ref={overlayPanelTerritory} style={{width: listBoxWidth + 'px'}} >
+                <ListBox
+                    ref={listBoxTerritory}
+                    onChange={(e) => handleSelectTerritory(e.value)}
+                    style={{maxHeight: "600px", overflow: "auto"}}
+                    options={props.availableTerritories} optionLabel="name" optionValue="id"
                 />
             </OverlayPanel>
             <ToggleButton
