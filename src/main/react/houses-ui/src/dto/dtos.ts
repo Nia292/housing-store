@@ -35,14 +35,14 @@ export interface SearchDto {
     worldId: number | null;
     territoryId: number | null;
     wardNumber: number | null;
-    owner: string | null;
-    greeting: string | null;
+
+    searchKeys: string[];
+    matchConjunctive: boolean;
     tags: HousingTag[];
+
     page: number;
     pageSize: number;
-    onlyFilled: boolean;
-    onlyOpen: boolean;
-    onlyWithGreeting: boolean;
+
 }
 
 export interface AvailableDataDto {

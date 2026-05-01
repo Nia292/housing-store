@@ -12,7 +12,6 @@ import org.hibernate.search.mapper.pojo.standalone.work.SearchIndexingPlan;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -62,23 +61,14 @@ public class SearchService {
                         if (searchDto.getTerritoryId() != null) {
                             and.add(f.match().field("territoryId").matching(searchDto.getTerritoryId()));
                         }
-                        if (searchDto.getWardNumber() != null) {
-                            and.add(f.match().field("wardNumber").matching(searchDto.getWardNumber()));
-                        }
-                        if (StringUtils.hasText(searchDto.getOwner())) {
-                            and.add(f.wildcard().field("owner").matching(searchDto.getOwner()));
-                        }
-                        if (StringUtils.hasText(searchDto.getGreeting())) {
-                            and.add(f.wildcard().field("greeting").matching(searchDto.getGreeting()));
-                        }
-                        if (searchDto.isOnlyOpen()) {
-                            and.add(f.match().field("open").matching(true));
-                        }
-                        if (searchDto.isOnlyFilled()) {
-                            and.add(f.exists().field("lastUpdate"));
-                        }
-                        if (searchDto.isOnlyWithGreeting()) {
-                            and.add(f.exists().field("greeting"));
+                        List<SearchToken> tokens = searchDto.getSearchKeys()
+                                .stream()
+                                .map(SearchToken::tokenize)
+                                .toList();
+                        if (!tokens.isEmpty()) {
+                            var merge = searchDto.isMatchConjunctive() ? f.and() : f.or();
+                            tokens.forEach(token -> merge.add(token.toPredicate(f)));
+                            and.add(merge);
                         }
                         for (HousingTag tag : searchDto.getTags()) {
                             and.add(f.or(

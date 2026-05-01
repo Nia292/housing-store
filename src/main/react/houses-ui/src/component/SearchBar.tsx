@@ -2,12 +2,11 @@ import type {Callback} from "../../types.ts";
 import {type AvailableTerritoryDto, type AvailableWorldDto, HousingTag, type SearchDto} from "../dto/dtos.ts";
 import {useContext, useEffect, useMemo, useState} from "react";
 import {Dropdown} from "primereact/dropdown";
-import {InputText} from "primereact/inputtext";
 import {MultiSelect} from "primereact/multiselect";
-import {Checkbox} from "primereact/checkbox";
 import {ToggleButton} from "primereact/togglebutton";
 import {PrimeReactContext} from "primereact/api";
 import {type SetURLSearchParams, useSearchParams} from "react-router-dom";
+import {GlobalSearch} from "./GlobalSearch.tsx";
 
 function WorldFilter(props: {selectedWorld: number | null, availableWorlds: AvailableWorldDto[], selectWorld: Callback<number>}) {
     return (<div className="flex flex-column">
@@ -40,14 +39,6 @@ function TerritoryFilter(props: {selectedTerritory: number | null, availableTerr
             optionValue="id"
             style={{width: "200px"}}
         />
-    </div>)
-}
-
-function TextFilter(props: {inputId: string, text: string, setText: Callback<string>, placeholder: string}) {
-    return (<div className="flex flex-column">
-        <label htmlFor={props.inputId}>{props.placeholder}</label>
-        <InputText style={{width: "200px"}} id={props.inputId} placeholder={props.placeholder} value={props.text}
-                   onChange={(e) => props.setText(e.target.value)}/>
     </div>)
 }
 
@@ -96,12 +87,9 @@ interface SearchBarProps {
 export function SearchBar(props: SearchBarProps) {
     const [searchParams, setSearchParams] = useSearchParams({world: "403"});
 
-    const [greetingSearch, setGreetingSearch] = useState<string>('');
-    const [onwerSearch, setOwnerSearch] = useState<string>('');
-    const [onlyCollected, setOnlyCollected] = useState<boolean>(true);
-    const [hasGreeting, setHasGreeting] = useState<boolean>(false);
-    const [onlyOpen, setOnlyOpen] = useState<boolean>(false);
     const [selectedTags, setSelectedTags] = useState<HousingTag[]>([]);
+    const [searchKeys, setSearchKeys] = useState<string[]>(["status:collected"]);
+    const [conjunctive, setConjunctive] = useState<boolean>(true);
     const [darkMode, setDarkMode] = useState<boolean>(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
     const { changeTheme } = useContext(PrimeReactContext);
@@ -123,42 +111,26 @@ export function SearchBar(props: SearchBarProps) {
     useEffect(() => {
         const timeout = setTimeout(() => {
             const searchDto: SearchDto = {
-                owner: onwerSearch,
                 worldId: selectedWorld,
-                greeting: greetingSearch,
                 territoryId: selectedTerritory,
                 wardNumber: null,
-                onlyFilled: onlyCollected,
                 tags: selectedTags,
                 page: 0, // set later
                 pageSize: 0, // set later
-                onlyOpen: onlyOpen,
-                onlyWithGreeting: hasGreeting
+                searchKeys: searchKeys,
+                matchConjunctive: conjunctive
             }
             props.onSearchChange(searchDto);
         }, 300);
         return () => clearTimeout(timeout);
-    }, [greetingSearch, onwerSearch, selectedWorld, selectedTerritory, onlyCollected, selectedTags, onlyOpen, hasGreeting]);
+    }, [selectedWorld, selectedTerritory, selectedTags, conjunctive, searchKeys]);
 
     return (<div style={{display: "flex", flexDirection: "row"}}>
         <div style={{marginRight: "8px"}}><WorldFilter availableWorlds={props.availableWorlds} selectedWorld={selectedWorld} selectWorld={setSelectedWorld}/></div>
         <div style={{marginRight: "8px"}}><TerritoryFilter availableTerritories={props.availableTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory}/></div>
-        <div style={{marginRight: "8px"}}><TextFilter inputId="owner-filter" text={onwerSearch} setText={setOwnerSearch} placeholder="Search Owner"/></div>
-        <div style={{marginRight: "8px"}}><TextFilter inputId="greeting-filter" text={greetingSearch} setText={setGreetingSearch} placeholder="Search Greeting"/></div>
         <div style={{marginRight: "8px"}}><TagFilter inputId="tag-filter" selectedTags={selectedTags} setSelectedTags={setSelectedTags}/></div>
-        <div style={{marginRight: "8px"}} className="flex flex-column">
-            <div className="flex flex-center" style={{marginTop: "auto"}}>
-                <Checkbox inputId="only-collected" onChange={(e) => setOnlyCollected(e.checked ?? false)} checked={onlyCollected} />
-                <label className="ml-2" htmlFor="only-collected">Hide Never Indexed</label>
-            </div>
-            <div className="flex flex-center" style={{marginRight: "auto"}}>
-                <Checkbox inputId="has-greeting" checked={hasGreeting} onChange={(e) => setHasGreeting(e.checked ?? false)} />
-                <label className="ml-2" htmlFor="has-greeting">Only With Greeting</label>
-            </div>
-            <div className="flex flex-center" style={{marginRight: "auto"}}>
-                <Checkbox inputId="is-open" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.checked ?? false)} />
-                <label className="ml-2" htmlFor="is-open">Only Accessible</label>
-            </div>
+        <div style={{marginRight: "8px"}}>
+            <GlobalSearch searchTerms={searchKeys} and={conjunctive} onSearchTermsChange={setSearchKeys} onAndChange={setConjunctive}></GlobalSearch>
         </div>
         <div style={{marginLeft: "auto"}}>
             <ToggleButton onIcon="pi pi-moon" offIcon="pi pi-sun"
