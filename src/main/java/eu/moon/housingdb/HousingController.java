@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -25,6 +26,25 @@ public class HousingController {
     private final EntityManager entityManager;
     private final SearchService searchService;
     private final HousingUpdater housingUpdater;
+
+    @GetMapping("/missing-data")
+    public List<MissingDataDto> getMissingData() {
+        return housingPlotRepository.getMissingData()
+                .stream()
+                .collect(Collectors.groupingBy(MissingData::territoryId))
+                .values()
+                .stream()
+                .map(missingWards -> {
+                    var first = missingWards.getFirst();
+
+                    return new MissingDataDto(
+                            first.worldName(),
+                            first.territoryName(),
+                            MissingWardStringifier.stringify(missingWards)
+                    );
+                })
+                .toList();
+    }
 
     @GetMapping("/available-data")
     public AvailableDataDto getAvailableData() {

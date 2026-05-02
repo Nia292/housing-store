@@ -60,6 +60,12 @@ export interface AvailableTerritoryDto {
     id: number;
 }
 
+export interface MissingDataDto {
+    worldName: string;
+    territoryName: string;
+    missingWards: string;
+}
+
 export enum HousingTag {
     None = "None",
     Emporium = "Emporium",

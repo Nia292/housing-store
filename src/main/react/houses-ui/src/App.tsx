@@ -5,6 +5,7 @@ import {
     type AvailableDataDto,
     type AvailableTerritoryDto,
     type AvailableWorldDto,
+    type MissingDataDto,
     type SearchDto,
     type SearchResultDto,
     type SearchResultEntryDto
@@ -12,6 +13,7 @@ import {
 import {SearchBar} from "./component/SearchBar.tsx";
 import {Paginator, type PaginatorPageChangeEvent} from "primereact/paginator";
 import {PlotTable} from "./component/PlotTable.tsx";
+import {MissingWardsSidebar} from "./component/MissingWardsSidebar.tsx";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AppProps {
@@ -28,6 +30,8 @@ interface AppState {
     pageSize: number;
     searchResults: SearchResultEntryDto[];
     totalRecords: number;
+    missingWardsOpen: boolean;
+    missingData: MissingDataDto[];
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -42,6 +46,8 @@ class App extends React.Component<AppProps, AppState> {
         pageSize: 60,
         searchResults: [],
         totalRecords: 0,
+        missingWardsOpen: false,
+        missingData: []
     } satisfies AppState as AppState;
 
     componentDidMount() {
@@ -99,6 +105,16 @@ class App extends React.Component<AppProps, AppState> {
             })
     }
 
+    asyncLoadMissingData() {
+        axios.get<MissingDataDto[]>('/api/missing-data')
+            .then(value => {
+                this.setState({missingData: value.data})
+            })
+            .catch((err) => {
+                console.error(err);
+            })
+    }
+
     asyncSetFavorite(plot: SearchResultEntryDto, isFavorite: boolean): void {
         this.setState({favoritesPending: true});
         axios.post(`/api/favorite/${plot.worldId}/${plot.territoryId}/${plot.ward}/${plot.plot.plotNumber}/${isFavorite}`)
@@ -126,6 +142,14 @@ class App extends React.Component<AppProps, AppState> {
         this.setState({deferredSearch: search}, () => this.onSearchOrPageChange());
     }
 
+    onMissingWardsClick = () => {
+        if (!this.state.missingWardsOpen) {
+            this.asyncLoadMissingData();
+        }
+        this.setState({missingWardsOpen: !this.state.missingWardsOpen});
+
+    }
+
     render() {
         return (
             <PrimeReactProvider>
@@ -141,7 +165,9 @@ class App extends React.Component<AppProps, AppState> {
                     </p>
                     <SearchBar onSearchChange={this.setDeferredSearch}
                                availableTerritories={this.state.availableTerritories}
-                               availableWorlds={this.state.availableWorlds}/>
+                               availableWorlds={this.state.availableWorlds}
+                               onMissingWardsClick={this.onMissingWardsClick}
+                    />
                     <div className="prime-demo-card" style={{marginTop: "8px"}}>
                         <PlotTable loading={this.state.loading}
                                    rows={this.state.searchResults}
@@ -159,6 +185,7 @@ class App extends React.Component<AppProps, AppState> {
                                    onPageChange={this.onPageChange}
                         />
                     </div>
+                   <MissingWardsSidebar data={this.state.missingData} open={this.state.missingWardsOpen} toggle={this.onMissingWardsClick}></MissingWardsSidebar>
                 </div>
             </PrimeReactProvider>
         );

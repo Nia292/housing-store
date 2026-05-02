@@ -1,6 +1,7 @@
 package eu.moon.housingdb.repo;
 
 import eu.moon.housingdb.domain.HousingPlot;
+import eu.moon.housingdb.dto.MissingData;
 import eu.moon.housingdb.dto.SearchResultPlotDto;
 import eu.moon.housingdb.search.SearchablePlot;
 import org.springframework.data.domain.Page;
@@ -79,4 +80,14 @@ public interface HousingPlotRepository extends JpaRepository<HousingPlot, Long> 
         where (plot.id in :ids)
         """)
     List<SearchablePlot> getManyForIndex(List<Long> ids);
+
+    @Query("""
+                select new eu.moon.housingdb.dto.MissingData(world.name, territory.name, territory.id, ward.wardNumber) from HousingWorld world
+                        join world.territories territory
+                        join territory.wards ward
+                        join ward.plots plot
+                    where plot.lastUpdated is null
+                group by ward.id
+            """)
+    List<MissingData> getMissingData();
 }

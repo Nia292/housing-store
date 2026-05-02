@@ -7,6 +7,7 @@ import {ToggleButton} from "primereact/togglebutton";
 import {PrimeReactContext} from "primereact/api";
 import {type SetURLSearchParams, useSearchParams} from "react-router-dom";
 import {GlobalSearch} from "./GlobalSearch.tsx";
+import {Button} from "primereact/button";
 
 function WorldFilter(props: {selectedWorld: number | null, availableWorlds: AvailableWorldDto[], selectWorld: Callback<number>}) {
     return (<div className="flex flex-column">
@@ -65,6 +66,7 @@ interface SearchBarProps {
     availableTerritories: AvailableTerritoryDto[];
 
     onSearchChange: Callback<SearchDto>;
+    onMissingWardsClick: Callback<void>;
 }
 
 export function SearchBar(props: SearchBarProps) {
@@ -117,6 +119,9 @@ export function SearchBar(props: SearchBarProps) {
                 availableTerritories={props.availableTerritories}
             >
             </GlobalSearch>
+        </div>
+        <div style={{marginRight: "8px"}}>
+            <Button style={{marginTop: "18px"}} label="Missing Wards" onClick={() => props.onMissingWardsClick()}></Button>
         </div>
         <div style={{marginLeft: "auto"}}>
             <ToggleButton onIcon="pi pi-moon" offIcon="pi pi-sun"
