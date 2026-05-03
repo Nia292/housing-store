@@ -2,6 +2,7 @@ package eu.moon.housingdb.search;
 
 import eu.moon.housingdb.domain.HousingTag;
 import lombok.Data;
+import org.hibernate.search.engine.backend.types.Projectable;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
 import org.springframework.util.StringUtils;
@@ -28,7 +29,7 @@ public class SearchablePlot {
     private Integer plotNumber;
     @FullTextField
     private String owner;
-    @FullTextField
+    @FullTextField(projectable = Projectable.YES)
     private String greeting;
     @GenericField
     private boolean open;

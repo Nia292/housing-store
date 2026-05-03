@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -121,6 +122,14 @@ public class HousingController {
     public List<Long> getFavoritePlotIds() {
         var username = getCurrentUserName();
         return favoriteRepository.findIdsByUsername(username);
+    }
+
+    @GetMapping("/search-suggestions")
+    public List<String> getTopSuggestions(@RequestParam("search") String search) {
+        if (search.isBlank()) {
+            return Collections.emptyList();
+        }
+        return searchService.fuzzySuggestions(search);
     }
 
     private String getCurrentUserName() {

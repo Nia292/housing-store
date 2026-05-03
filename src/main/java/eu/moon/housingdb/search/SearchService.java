@@ -6,6 +6,7 @@ import eu.moon.housingdb.dto.SearchResultDto;
 import eu.moon.housingdb.repo.HousingPlotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.search.engine.search.sort.dsl.TypedSearchSortFactory;
 import org.hibernate.search.mapper.pojo.standalone.mapping.SearchMapping;
 import org.hibernate.search.mapper.pojo.standalone.session.SearchSession;
 import org.hibernate.search.mapper.pojo.standalone.work.SearchIndexingPlan;
@@ -46,6 +47,20 @@ public class SearchService {
         try ( var session = searchMapping.createSession() ) {
             SearchIndexingPlan searchIndexingPlan = session.indexingPlan();
             searchIndexingPlan.addOrUpdate(housingPlotRepository.getOneForIndex(id));
+        }
+    }
+
+    public List<String> fuzzySuggestions(String query) {
+        try ( SearchSession session = searchMapping.createSession() ) {
+            return session.search(session.scope(SearchablePlot.class))
+                    .select(f -> f.field("greeting"))
+                    .where(f -> f.match().field("greeting").matching(query).fuzzy())
+                    .sort(TypedSearchSortFactory::score)
+                    .fetch(15)
+                    .hits()
+                    .stream()
+                    .map(o -> (String) o)
+                    .toList();
         }
     }
 

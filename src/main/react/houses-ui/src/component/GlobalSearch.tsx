@@ -5,6 +5,8 @@ import {useRef, useState} from "react";
 import {OverlayPanel} from "primereact/overlaypanel";
 import {ListBox} from "primereact/listbox";
 import type {AvailableTerritoryDto} from "../dto/dtos.ts";
+import {InputText} from "primereact/inputtext";
+import axios from "axios";
 
 export interface GlobalSearchProps {
     searchTerms: string[];
@@ -47,7 +49,9 @@ function renderSuggestions(keyword: string) {
 }
 
 export function GlobalSearch(props: GlobalSearchProps) {
+    const [fuzzySearch, setFuzzySearch] = useState<string>('');
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [fuzzySuggestions, setFuzzySuggestions] = useState<string[]>([]);
 
     const overlayPanelWards = useRef<OverlayPanel>(null);
     const listBoxWards = useRef<ListBox>(null);
@@ -60,6 +64,9 @@ export function GlobalSearch(props: GlobalSearchProps) {
 
     const overlayPanelTerritory = useRef<OverlayPanel>(null);
     const listBoxTerritory = useRef<ListBox>(null);
+
+    const overlayPanelSearches = useRef<OverlayPanel>(null);
+    const listBoxSearches = useRef<HTMLInputElement>(null);
 
     const autocomplete = useRef<AutoComplete>(null);
 
@@ -92,7 +99,10 @@ export function GlobalSearch(props: GlobalSearchProps) {
         } else if (event.value === 'area:') {
             overlayPanelTerritory?.current?.toggle(event.originalEvent, autocomplete.current?.getElement())
             setTimeout(() => listBoxTerritory.current?.focus(), 20);
-        } else {
+        } else if (event.value === 'fuzzy:') {
+            overlayPanelSearches?.current?.toggle(event.originalEvent, autocomplete.current?.getElement())
+            setTimeout(() => listBoxSearches.current?.focus(), 20);
+        }  else {
             props.onSearchTermsChange([...props.searchTerms, event.value])
         }
     }
@@ -119,6 +129,22 @@ export function GlobalSearch(props: GlobalSearchProps) {
     function handleSelectTerritory(territory: string): void {
         props.onSearchTermsChange([...props.searchTerms, `area: ${territory}`])
         overlayPanelTerritory.current?.hide();
+    }
+
+    function handleSelectFuzzyTerm(key: string): void {
+        if (key === 'Enter') {
+            props.onSearchTermsChange([...props.searchTerms, `fuzzy: ${fuzzySearch}`]);
+            overlayPanelSearches.current?.hide();
+            setFuzzySearch("");
+        }
+    }
+
+    function asyncQuerySuggestions(value: string): void {
+        axios.get<string[]>(`/api/search-suggestions?search=${value}`)
+            .then(value => {
+                setFuzzySuggestions(value.data);
+            });
+        setFuzzySearch(value);
     }
 
 
@@ -170,6 +196,19 @@ export function GlobalSearch(props: GlobalSearchProps) {
                     onChange={(e) => handleSelectTerritory(e.value)}
                     style={{maxHeight: "600px", overflow: "auto"}}
                     options={props.availableTerritories} optionLabel="name" optionValue="id"
+                />
+            </OverlayPanel>
+            <OverlayPanel ref={overlayPanelSearches} style={{width: listBoxWidth + 'px'}} >
+                <InputText style={{width: "100%"}}
+                           value={fuzzySearch}
+                           onChange={event => asyncQuerySuggestions(event.target.value)}
+                           onKeyDown={event => handleSelectFuzzyTerm(event.key)}
+                           ref={listBoxSearches}
+                           placeholder="Fuzzy: Start typing to get suggestions"></InputText>
+                <ListBox
+                    ref={listBoxTerritory}
+                    style={{maxHeight: "600px", overflow: "auto"}}
+                    options={fuzzySuggestions}
                 />
             </OverlayPanel>
             <ToggleButton
