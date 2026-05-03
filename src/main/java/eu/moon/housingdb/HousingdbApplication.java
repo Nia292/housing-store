@@ -42,20 +42,31 @@ public class HousingdbApplication implements InitializingBean {
                     var split = line.split(",");
                     var id = Integer.valueOf(split[0]);
                     var name = split[1];
+                    var dataCenter = Integer.valueOf(split[3]);
                     var isPublic = split[6].equals("True");
                     if (isPublic) {
-                        initializeWorldIfNeeded(name, id);
+                        initializeWorldIfNeeded(name, id, dataCenter);
+                        addDataCenterIfNeeded(id, dataCenter);
                     }
                 });
         searchService.buildIndex();
         housingUpdater.migrateGreetingFlag();
     }
 
-    private void initializeWorldIfNeeded(String worldName, int worldId) {
+    private void addDataCenterIfNeeded(int id, int dataCenterId) {
+        HousingWorld world = housingWorldRepository.getByWorldId(id);
+        if (world.getDataCenterId() == null) {
+            world.setDataCenterId(dataCenterId);
+            housingWorldRepository.save(world);
+        }
+    }
+
+    private void initializeWorldIfNeeded(String worldName, int worldId, int dataCenterId) {
         if (!housingWorldRepository.existsByWorldId(worldId)) {
             log.info("Failed to find world {}, initializing", worldName);
             var world = new HousingWorld();
             world.setName(worldName);
+            world.setDataCenterId(dataCenterId);
             world.setWorldId(worldId);
             world.setTerritories(List.of(
                     createHousingTerritory("The Goblet", 341),

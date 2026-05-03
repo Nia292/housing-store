@@ -2,7 +2,7 @@ spring:
   application:
     name: housingdb
   datasource:
-    url: jdbc:h2:file:~/housing.db;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+    url: jdbc:h2:file:~/housing.db.mv.db.29.04.2026;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
     username: sa
     password: password
     driverClassName: org.h2.Driver

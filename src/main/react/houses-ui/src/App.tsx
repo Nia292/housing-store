@@ -2,9 +2,9 @@ import * as React from 'react'
 import {PrimeReactProvider} from 'primereact/api';
 import axios from 'axios';
 import {
+    type AvailableDataCenterDto,
     type AvailableDataDto,
     type AvailableTerritoryDto,
-    type AvailableWorldDto,
     type MissingDataDto,
     type SearchDto,
     type SearchResultDto,
@@ -20,7 +20,7 @@ interface AppProps {
 }
 
 interface AppState {
-    availableWorlds: AvailableWorldDto[];
+    availableDataCenters: AvailableDataCenterDto[];
     availableTerritories: AvailableTerritoryDto[];
     deferredSearch: SearchDto | null;
     favorites: number[];
@@ -36,7 +36,7 @@ interface AppState {
 
 class App extends React.Component<AppProps, AppState> {
     state = {
-        availableWorlds: [],
+        availableDataCenters: [],
         availableTerritories: [],
         deferredSearch: null,
         favorites: [],
@@ -54,7 +54,7 @@ class App extends React.Component<AppProps, AppState> {
         axios.get<AvailableDataDto>("/api/available-data")
             .then(value => {
                 this.setState({
-                    availableWorlds: value.data.worlds,
+                    availableDataCenters: value.data.dataCenters,
                     availableTerritories: value.data.territories,
                 });
             });
@@ -147,7 +147,10 @@ class App extends React.Component<AppProps, AppState> {
             this.asyncLoadMissingData();
         }
         this.setState({missingWardsOpen: !this.state.missingWardsOpen});
+    }
 
+    onReloadClick = () => {
+        this.onSearchOrPageChange();
     }
 
     render() {
@@ -165,8 +168,9 @@ class App extends React.Component<AppProps, AppState> {
                     </p>
                     <SearchBar onSearchChange={this.setDeferredSearch}
                                availableTerritories={this.state.availableTerritories}
-                               availableWorlds={this.state.availableWorlds}
+                               availableDataCenters={this.state.availableDataCenters}
                                onMissingWardsClick={this.onMissingWardsClick}
+                               onReload={this.onReloadClick}
                     />
                     <div className="prime-demo-card" style={{marginTop: "8px"}}>
                         <PlotTable loading={this.state.loading}

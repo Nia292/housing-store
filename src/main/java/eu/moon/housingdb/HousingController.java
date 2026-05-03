@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,7 @@ public class HousingController {
                     return new MissingDataDto(
                             first.worldName(),
                             first.territoryName(),
-                            MissingWardStringifier.stringify(missingWards)
+                            StringConversions.stringify(missingWards)
                     );
                 })
                 .toList();
@@ -48,11 +49,25 @@ public class HousingController {
 
     @GetMapping("/available-data")
     public AvailableDataDto getAvailableData() {
-        var worlds = entityManager.createQuery("select distinct new eu.moon.housingdb.dto.AvailableWorldDto(world.name, world.worldId) from HousingWorld world", AvailableWorldDto.class)
-                .getResultList();
+        var dataCenters = entityManager.createQuery("select distinct new eu.moon.housingdb.dto.AvailableWorldDto(world.name, world.worldId, world.dataCenterId) from HousingWorld world", AvailableWorldDto.class)
+                .getResultList()
+                .stream()
+                .collect(Collectors.groupingBy(AvailableWorldDto::dataCenterId))
+                .entrySet()
+                .stream()
+                .map(integerListEntry -> {
+                    var dcId = integerListEntry.getKey();
+                    var worldsSorted = integerListEntry.getValue()
+                            .stream()
+                            .sorted(Comparator.comparing(AvailableWorldDto::name))
+                            .toList();
+                    return new AvailableDataCenterDto(StringConversions.getDcName(dcId),worldsSorted );
+                })
+                .toList();
+
         var wards = entityManager.createQuery("select distinct new eu.moon.housingdb.dto.AvailableTerritoryDto(t.name, t.territoryId) from HousingTerritory t", AvailableTerritoryDto.class)
                 .getResultList();
-        return new AvailableDataDto(worlds, wards);
+        return new AvailableDataDto(dataCenters, wards);
     }
 
     @PostMapping("/search")

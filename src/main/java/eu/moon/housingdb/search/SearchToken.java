@@ -10,7 +10,7 @@ public abstract class SearchToken {
 
     public static SearchToken tokenize(String value) {
         if (!value.contains(":")) {
-            return new PhraseToken(value);
+            return new WildcardToken(value);
         }
         String[] split = value.split(":");
         if (split.length != 2) {
@@ -25,6 +25,8 @@ public abstract class SearchToken {
             case "ward" -> new WardToken(tokenValue);
             case "plot" -> new PlotToken(tokenValue);
             case "area" -> new AreaToken(tokenValue);
+            case "phrase" -> new PhraseToken(tokenValue);
+            case "fuzzy" -> new FuzzyToken(tokenValue);
             default -> throw new RuntimeException("Unknown token key: " + tokenKey);
         };
     }
@@ -102,6 +104,18 @@ public abstract class SearchToken {
     }
 
     @RequiredArgsConstructor
+    private static class WildcardToken extends SearchToken {
+
+        private final String value;
+
+
+        @Override
+        public SearchPredicate toPredicate(TypedSearchPredicateFactory<?> factory) {
+            return factory.wildcard().field("greeting").matching("*" + value + "*").toPredicate();
+        }
+    }
+
+    @RequiredArgsConstructor
     private static class PhraseToken extends SearchToken {
 
         private final String value;
@@ -110,6 +124,18 @@ public abstract class SearchToken {
         @Override
         public SearchPredicate toPredicate(TypedSearchPredicateFactory<?> factory) {
             return factory.phrase().field("greeting").matching(value).toPredicate();
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class FuzzyToken extends SearchToken {
+
+        private final String value;
+
+
+        @Override
+        public SearchPredicate toPredicate(TypedSearchPredicateFactory<?> factory) {
+            return factory.match().field("greeting").matching(value).fuzzy().toPredicate();
         }
     }
 }

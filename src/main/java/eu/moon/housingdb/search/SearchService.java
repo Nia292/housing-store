@@ -45,7 +45,7 @@ public class SearchService {
     public void addToIndex(Long id) {
         try ( var session = searchMapping.createSession() ) {
             SearchIndexingPlan searchIndexingPlan = session.indexingPlan();
-            searchIndexingPlan.add(housingPlotRepository.getOneForIndex(id));
+            searchIndexingPlan.addOrUpdate(housingPlotRepository.getOneForIndex(id));
         }
     }
 

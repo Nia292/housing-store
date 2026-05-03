@@ -1,5 +1,5 @@
 import type {Callback} from "../../types.ts";
-import {type AvailableTerritoryDto, type AvailableWorldDto, HousingTag, type SearchDto} from "../dto/dtos.ts";
+import {type AvailableDataCenterDto, type AvailableTerritoryDto, HousingTag, type SearchDto} from "../dto/dtos.ts";
 import {useContext, useEffect, useMemo, useState} from "react";
 import {Dropdown} from "primereact/dropdown";
 import {MultiSelect} from "primereact/multiselect";
@@ -9,15 +9,17 @@ import {type SetURLSearchParams, useSearchParams} from "react-router-dom";
 import {GlobalSearch} from "./GlobalSearch.tsx";
 import {Button} from "primereact/button";
 
-function WorldFilter(props: {selectedWorld: number | null, availableWorlds: AvailableWorldDto[], selectWorld: Callback<number>}) {
+function WorldFilter(props: {selectedWorld: number | null, availableDataCenters: AvailableDataCenterDto[], selectWorld: Callback<number>}) {
     return (<div className="flex flex-column">
         <label htmlFor="world-filter">Select World</label>
         <Dropdown
             filter
             value={props.selectedWorld}
-            options={props.availableWorlds}
+            options={props.availableDataCenters}
             showClear={true}
             onChange={(e) => props.selectWorld(e.value)}
+            optionGroupLabel="name"
+            optionGroupChildren="worlds"
             optionLabel="name"
             optionValue="id"
             id="world-filter"
@@ -62,15 +64,16 @@ function updateQuery(key: string, value: number | null, setSearchParams: SetURLS
 }
 
 interface SearchBarProps {
-    availableWorlds: AvailableWorldDto[];
+    availableDataCenters: AvailableDataCenterDto[];
     availableTerritories: AvailableTerritoryDto[];
 
     onSearchChange: Callback<SearchDto>;
     onMissingWardsClick: Callback<void>;
+    onReload: Callback<void>;
 }
 
 export function SearchBar(props: SearchBarProps) {
-    const [searchParams, setSearchParams] = useSearchParams({world: "403"});
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [selectedTags, setSelectedTags] = useState<HousingTag[]>([]);
     const [searchKeys, setSearchKeys] = useState<string[]>(["status: collected"]);
@@ -107,8 +110,14 @@ export function SearchBar(props: SearchBarProps) {
         return () => clearTimeout(timeout);
     }, [selectedWorld, selectedTags, conjunctive, searchKeys]);
 
+    useEffect(() => {
+        if (selectedWorld == null) {
+            setSelectedWorld(403);
+        }
+    }, []);
+
     return (<div style={{display: "flex", flexDirection: "row"}}>
-        <div style={{marginRight: "8px"}}><WorldFilter availableWorlds={props.availableWorlds} selectedWorld={selectedWorld} selectWorld={setSelectedWorld}/></div>
+        <div style={{marginRight: "8px"}}><WorldFilter availableDataCenters={props.availableDataCenters} selectedWorld={selectedWorld} selectWorld={setSelectedWorld}/></div>
         <div style={{marginRight: "8px"}}><TagFilter inputId="tag-filter" selectedTags={selectedTags} setSelectedTags={setSelectedTags}/></div>
         <div style={{marginRight: "8px"}}>
             <GlobalSearch
@@ -123,7 +132,10 @@ export function SearchBar(props: SearchBarProps) {
         <div style={{marginRight: "8px"}}>
             <Button style={{marginTop: "18px"}} label="Missing Wards" onClick={() => props.onMissingWardsClick()}></Button>
         </div>
-        <div style={{marginLeft: "auto"}}>
+        <div style={{marginRight: "8px"}}>
+            <Button style={{marginTop: "18px"}} icon="pi pi-sync" onClick={() => props.onReload()}></Button>
+        </div>
+        <div style={{marginLeft: "auto", marginTop: "auto"}}>
             <ToggleButton onIcon="pi pi-moon" offIcon="pi pi-sun"
                           offLabel="Not Luna Mode"
                           onLabel="Luna Mode"

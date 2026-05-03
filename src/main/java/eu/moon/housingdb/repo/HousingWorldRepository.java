@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 public interface HousingWorldRepository extends JpaRepository<HousingWorld, Long> {
 
     boolean existsByWorldId(int worldId);
+    HousingWorld getByWorldId(int worldId);
 }

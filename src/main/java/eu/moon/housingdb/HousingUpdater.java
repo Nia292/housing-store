@@ -74,8 +74,7 @@ public class HousingUpdater {
                     if (!Objects.equals(newGreeting, plot1.getGreeting())) {
                         plot1.setGreeting(newGreeting);
                         plot1.setLastGreetingUpdated(LocalDateTime.now());
-                        housingPlotRepository.save(plot1);
-                        return plot1.getId();
+                        return housingPlotRepository.save(plot1).getId();
                     }
                     return null;
                 });

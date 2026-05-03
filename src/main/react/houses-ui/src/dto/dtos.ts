@@ -46,8 +46,13 @@ export interface SearchDto {
 }
 
 export interface AvailableDataDto {
-    worlds: AvailableWorldDto[];
+    dataCenters: AvailableDataCenterDto[];
     territories: AvailableTerritoryDto[];
+}
+
+export interface AvailableDataCenterDto {
+    name: string;
+    worlds: AvailableWorldDto[];
 }
 
 export interface AvailableWorldDto {

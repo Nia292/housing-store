@@ -20,6 +20,9 @@ public class HousingWorld {
     @Column(name = "world_id")
     private int worldId;
 
+    @Column(name = "data_center_id")
+    private Integer dataCenterId;
+
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "world_id")
     private List<HousingTerritory> territories;

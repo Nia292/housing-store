@@ -27,7 +27,7 @@ const statusSearches = [
     {label: <span><span className="font-bold">Misses Greeting</span> - Basic information has been collected, but the greeting text is missing</span>, value: 'misses-greeting'},
 ]
 
-const searchPhrases = ['area:', 'owner:', 'not:', 'status:', 'ward:', 'plot:'];
+const searchPhrases = ['area:', 'owner:', 'not:', 'status:', 'ward:', 'plot:', 'fuzzy:', 'phrase:'];
 
 function onlyUnique<T>(value: T, index: number, array: T[]): boolean {
     return array.indexOf(value) === index;
