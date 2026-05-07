@@ -13,7 +13,8 @@ import {
 import {SearchBar} from "./component/SearchBar.tsx";
 import {Paginator, type PaginatorPageChangeEvent} from "primereact/paginator";
 import {PlotTable} from "./component/PlotTable.tsx";
-import {MissingWardsSidebar} from "./component/MissingWardsSidebar.tsx";
+import {DarkModeToggle} from "./component/DarkModeToggle.tsx";
+import {FavoritesTable} from "./component/FavoritesTable.tsx";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AppProps {
@@ -32,6 +33,7 @@ interface AppState {
     totalRecords: number;
     missingWardsOpen: boolean;
     missingData: MissingDataDto[];
+    showFavorites: boolean;
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -47,7 +49,8 @@ class App extends React.Component<AppProps, AppState> {
         searchResults: [],
         totalRecords: 0,
         missingWardsOpen: false,
-        missingData: []
+        missingData: [],
+        showFavorites: false,
     } satisfies AppState as AppState;
 
     componentDidMount() {
@@ -105,15 +108,6 @@ class App extends React.Component<AppProps, AppState> {
             })
     }
 
-    asyncLoadMissingData() {
-        axios.get<MissingDataDto[]>('/api/missing-data')
-            .then(value => {
-                this.setState({missingData: value.data})
-            })
-            .catch((err) => {
-                console.error(err);
-            })
-    }
 
     asyncSetFavorite(plot: SearchResultEntryDto, isFavorite: boolean): void {
         this.setState({favoritesPending: true});
@@ -142,12 +136,6 @@ class App extends React.Component<AppProps, AppState> {
         this.setState({deferredSearch: search}, () => this.onSearchOrPageChange());
     }
 
-    onMissingWardsClick = () => {
-        if (!this.state.missingWardsOpen) {
-            this.asyncLoadMissingData();
-        }
-        this.setState({missingWardsOpen: !this.state.missingWardsOpen});
-    }
 
     onReloadClick = () => {
         this.onSearchOrPageChange();
@@ -158,38 +146,56 @@ class App extends React.Component<AppProps, AppState> {
             <PrimeReactProvider>
                 <div style={{marginLeft: "12rem", marginRight: "12rem"}}>
                     <h1>Housing Index</h1>
-                    <p>
-                        A searchable housing index. Plot information including owner and tags are updated on viewing a
-                        ward.
-                        Greetings are only updated
-                        when an entry is selected and the housing info sign is shown. Some filters are available.
-                        Filters
-                        are conditional-and filters, except when choosing multiple tags (= one-of)
-                    </p>
+                    <div className="flex flex-row">
+                        <div>
+                            <p>
+                                A searchable housing index. Plot information including owner and tags are updated on
+                                viewing a
+                                ward.
+                                Greetings are only updated
+                                when an entry is selected and the housing info sign is shown. Some filters are
+                                available.
+                                Filters
+                                are conditional-and filters, except when choosing multiple tags (= one-of)
+                            </p>
+                        </div>
+                        <div style={{marginLeft: "auto"}}>
+                            <DarkModeToggle/>
+                        </div>
+                    </div>
                     <SearchBar onSearchChange={this.setDeferredSearch}
                                availableTerritories={this.state.availableTerritories}
                                availableDataCenters={this.state.availableDataCenters}
-                               onMissingWardsClick={this.onMissingWardsClick}
                                onReload={this.onReloadClick}
+                               showFavorites={this.state.showFavorites}
+                               onToggleFavorites={() => this.setState({showFavorites: !this.state.showFavorites})}
                     />
-                    <div className="prime-demo-card" style={{marginTop: "8px"}}>
-                        <PlotTable loading={this.state.loading}
-                                   rows={this.state.searchResults}
-                                   favorites={this.state.favorites}
-                                   favoritesPending={this.state.favoritesPending}
-                                   onFavoritesToggle={this.onFavoritesToggle}
-                        >
-                        </PlotTable>
-                    </div>
-                    <div>
-                        <Paginator first={this.state.page * 60}
-                                   rows={this.state.pageSize}
-                                   totalRecords={this.state.totalRecords}
-                                   rowsPerPageOptions={[20, 30, 60, 120]}
-                                   onPageChange={this.onPageChange}
-                        />
-                    </div>
-                   <MissingWardsSidebar data={this.state.missingData} open={this.state.missingWardsOpen} toggle={this.onMissingWardsClick}></MissingWardsSidebar>
+                    {!this.state.showFavorites && <>
+                        <div className="prime-demo-card" style={{marginTop: "8px"}}>
+                            <PlotTable loading={this.state.loading}
+                                       rows={this.state.searchResults}
+                                       favorites={this.state.favorites}
+                                       favoritesPending={this.state.favoritesPending}
+                                       onFavoritesToggle={this.onFavoritesToggle}
+                            >
+                            </PlotTable>
+                        </div>
+                        <div>
+                            <Paginator first={this.state.page * 60}
+                                       rows={this.state.pageSize}
+                                       totalRecords={this.state.totalRecords}
+                                       rowsPerPageOptions={[20, 30, 60, 120]}
+                                       onPageChange={this.onPageChange}
+                            />
+                        </div>
+                    </>}
+                    {this.state.showFavorites && <>
+                        <div className="prime-demo-card" style={{marginTop: "8px"}}>
+                            <FavoritesTable>
+                            </FavoritesTable>
+                        </div>
+                    </>
+                    }
                 </div>
             </PrimeReactProvider>
         );

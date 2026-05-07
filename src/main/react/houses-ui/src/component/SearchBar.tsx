@@ -1,15 +1,19 @@
 import type {Callback} from "../../types.ts";
 import {type AvailableDataCenterDto, type AvailableTerritoryDto, HousingTag, type SearchDto} from "../dto/dtos.ts";
-import {useContext, useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {Dropdown} from "primereact/dropdown";
 import {MultiSelect} from "primereact/multiselect";
-import {ToggleButton} from "primereact/togglebutton";
-import {PrimeReactContext} from "primereact/api";
 import {type SetURLSearchParams, useSearchParams} from "react-router-dom";
 import {GlobalSearch} from "./GlobalSearch.tsx";
 import {Button} from "primereact/button";
+import {getHousingTagFilters} from "../util/enum-utils.ts";
+import {MissingWardsSidebar} from "./MissingWardsSidebar.tsx";
 
-function WorldFilter(props: {selectedWorld: number | null, availableDataCenters: AvailableDataCenterDto[], selectWorld: Callback<number>}) {
+function WorldFilter(props: {
+    selectedWorld: number | null,
+    availableDataCenters: AvailableDataCenterDto[],
+    selectWorld: Callback<number>
+}) {
     return (<div className="flex flex-column">
         <label htmlFor="world-filter">Select World</label>
         <Dropdown
@@ -23,18 +27,24 @@ function WorldFilter(props: {selectedWorld: number | null, availableDataCenters:
             optionLabel="name"
             optionValue="id"
             id="world-filter"
-            style={{width: "200px"}}
+            style={{width: "170px"}}
         />
     </div>)
 }
 
-const availableTags: HousingTag[] = Object.keys(HousingTag).filter(value => isNaN(Number(value))) as HousingTag[];
+const availableTags = getHousingTagFilters();
 
-function TagFilter(props: {inputId: string, selectedTags: HousingTag[], setSelectedTags: Callback<HousingTag[]>}) {
+function TagFilter(props: { inputId: string, selectedTags: HousingTag[], setSelectedTags: Callback<HousingTag[]> }) {
     return (<div className="flex flex-column">
         <label htmlFor={props.inputId}>Filter Tags</label>
-        <MultiSelect style={{width: "300px"}} value={props.selectedTags} onChange={(e) => props.setSelectedTags(e.value)} options={availableTags}
-                     placeholder="Select Tags" maxSelectedLabels={3} />
+        <MultiSelect style={{width: "280px"}}
+                     value={props.selectedTags}
+                     onChange={(e) => props.setSelectedTags(e.value)}
+                     options={availableTags}
+                     placeholder="Select Tags"
+                     showClear
+                     filter
+        />
     </div>)
 }
 
@@ -64,12 +74,13 @@ function updateQuery(key: string, value: number | null, setSearchParams: SetURLS
 }
 
 interface SearchBarProps {
+    showFavorites: boolean;
     availableDataCenters: AvailableDataCenterDto[];
     availableTerritories: AvailableTerritoryDto[];
 
     onSearchChange: Callback<SearchDto>;
-    onMissingWardsClick: Callback<void>;
     onReload: Callback<void>;
+    onToggleFavorites: Callback<void>;
 }
 
 export function SearchBar(props: SearchBarProps) {
@@ -78,20 +89,11 @@ export function SearchBar(props: SearchBarProps) {
     const [selectedTags, setSelectedTags] = useState<HousingTag[]>([]);
     const [searchKeys, setSearchKeys] = useState<string[]>(["status: collected"]);
     const [conjunctive, setConjunctive] = useState<boolean>(true);
-    const [darkMode, setDarkMode] = useState<boolean>(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-    const { changeTheme } = useContext(PrimeReactContext);
 
     const selectedWorld = useMemo(() => tryParseNumber(searchParams.get('world')), [searchParams]);
     const setSelectedWorld = (world: number | null) => updateQuery("world", world, setSearchParams);
 
-    useEffect(() => {
-        const theme = darkMode ? "lara-light-indigo" : "lara-dark-indigo";
-        const previousTheme = darkMode ? "lara-dark-indigo" : "lara-light-indigo";
-        if (changeTheme) {
-            changeTheme(previousTheme, theme, "theme-link", () => console.log('Done!'));
-        }
-    }, [darkMode]);
+
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -117,29 +119,50 @@ export function SearchBar(props: SearchBarProps) {
     }, []);
 
     return (<div style={{display: "flex", flexDirection: "row"}}>
-        <div style={{marginRight: "8px"}}><WorldFilter availableDataCenters={props.availableDataCenters} selectedWorld={selectedWorld} selectWorld={setSelectedWorld}/></div>
-        <div style={{marginRight: "8px"}}><TagFilter inputId="tag-filter" selectedTags={selectedTags} setSelectedTags={setSelectedTags}/></div>
-        <div style={{marginRight: "8px"}}>
-            <GlobalSearch
-                searchTerms={searchKeys}
-                and={conjunctive}
-                onSearchTermsChange={setSearchKeys}
-                onAndChange={setConjunctive}
-                availableTerritories={props.availableTerritories}
-            >
-            </GlobalSearch>
-        </div>
-        <div style={{marginRight: "8px"}}>
-            <Button style={{marginTop: "18px"}} label="Missing Wards" onClick={() => props.onMissingWardsClick()}></Button>
-        </div>
-        <div style={{marginRight: "8px"}}>
-            <Button style={{marginTop: "18px"}} icon="pi pi-sync" onClick={() => props.onReload()}></Button>
-        </div>
-        <div style={{marginLeft: "auto", marginTop: "auto"}}>
-            <ToggleButton onIcon="pi pi-moon" offIcon="pi pi-sun"
-                          offLabel="Not Luna Mode"
-                          onLabel="Luna Mode"
-                          checked={darkMode} onChange={(e) => setDarkMode(e.value)} />
+        { !props.showFavorites &&
+            <>
+                <div style={{marginRight: "8px"}}>
+                    <WorldFilter availableDataCenters={props.availableDataCenters}
+                                 selectedWorld={selectedWorld}
+                                 selectWorld={setSelectedWorld}
+                    />
+                </div>
+                <div style={{marginRight: "8px"}}><TagFilter inputId="tag-filter" selectedTags={selectedTags}
+                                                             setSelectedTags={setSelectedTags}/></div>
+                <div style={{marginRight: "8px"}}>
+                    <GlobalSearch
+                        searchTerms={searchKeys}
+                        and={conjunctive}
+                        onSearchTermsChange={setSearchKeys}
+                        onAndChange={setConjunctive}
+                        availableTerritories={props.availableTerritories}
+                    >
+                    </GlobalSearch>
+                </div>
+                <div style={{marginLeft: "auto"}}>
+                    <Button style={{marginTop: "18px"}}
+                            icon="pi pi-sync"
+                            onClick={() => props.onReload()}
+                            tooltip="Refresh Data"
+                    />
+                </div>
+                <div style={{marginLeft: "8px"}}>
+                    <Button style={{marginTop: "18px"}}
+                            icon="pi pi-heart"
+                            onClick={() => props.onToggleFavorites()}
+                            tooltip="Show Your Favorites"
+                    />
+                </div>
+            </>
+        }
+        {
+            props.showFavorites &&  <div style={{marginLeft: "auto"}}>
+                <Button style={{marginTop: "18px"}} icon="pi pi-heart" onClick={() => props.onToggleFavorites()}></Button>
+            </div>
+        }
+
+        <div style={{marginLeft: "8px"}}>
+            <MissingWardsSidebar />
         </div>
     </div>)
 }

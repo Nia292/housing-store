@@ -124,6 +124,12 @@ public class HousingController {
         return favoriteRepository.findIdsByUsername(username);
     }
 
+    @GetMapping("/favorite-plots")
+    public List<SearchResultPlotDto> getFavoritePlots() {
+        List<Long> favoritePlotIds = getFavoritePlotIds();
+        return housingPlotRepository.getDTOsByIDs(favoritePlotIds);
+    }
+
     @GetMapping("/search-suggestions")
     public List<String> getTopSuggestions(@RequestParam("search") String search) {
         if (search.isBlank()) {
