@@ -14,9 +14,9 @@ class StringConversionsTest {
 
     private static Stream<Arguments> wardConversionTestData() {
         return Stream.of(
-                Arguments.of(missingData(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30), "all"),
-                Arguments.of(missingData(1, 2, 3, 4, 28, 29, 30), "1-4, 28-30"),
-                Arguments.of(missingData(1, 2, 3, 4, 7, 28, 29, 30), "1-4, 7, 28-30")
+                Arguments.of(missingData(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29), "all"),
+                Arguments.of(missingData(0, 1, 2, 3, 27, 28, 29), "1-4, 28-30"),
+                Arguments.of(missingData(0, 1, 2, 3, 6, 27, 28, 29), "1-4, 7, 28-30")
         );
     }
 

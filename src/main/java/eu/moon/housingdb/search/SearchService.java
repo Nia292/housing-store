@@ -64,7 +64,7 @@ public class SearchService {
         }
     }
 
-    public SearchResultDto search(SearchDto searchDto) {
+    public SearchResultDto search(SearchDto searchDto, String username) {
         try ( SearchSession session = searchMapping.createSession() ) {
             var result = session.search(session.scope(SearchablePlot.class))
                     .select( f -> f.id( Long.class ) )
@@ -102,7 +102,7 @@ public class SearchService {
                     .fetch(searchDto.getPageSize() * searchDto.getPage(), searchDto.getPageSize());
             var hitCount = result.total().hitCount();
             var idsToLoad = result.hits();
-            var dtos = housingPlotRepository.getDTOsByIDs(idsToLoad);
+            var dtos = housingPlotRepository.getDTOsByIDs(idsToLoad, username);
             return new SearchResultDto(
                     dtos,
                     hitCount

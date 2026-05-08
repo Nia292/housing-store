@@ -17,7 +17,7 @@ public class StringConversions {
         return missingWards.stream()
                 .map(MissingData::wardNumber)
                 .sorted()
-                .map(ward -> new Moogle(ward, ward, new ArrayList<>()))
+                .map(ward -> new Moogle(ward + 1, ward + 1, new ArrayList<>()))
                 .reduce(Moogle::merge)
                 .map(Moogle::toFinalString)
                 .orElse("");

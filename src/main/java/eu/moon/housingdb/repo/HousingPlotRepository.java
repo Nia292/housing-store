@@ -32,13 +32,14 @@ public interface HousingPlotRepository extends JpaRepository<HousingPlot, Long> 
     Optional<HousingPlot> findPlot(int world, int territory, int wardNumber, int plot);
 
     @Query("""
-        select new eu.moon.housingdb.dto.SearchResultPlotDto(world.name, world.worldId, territory.name, territory.territoryId, ward.wardNumber, plot) from HousingWorld world
+        select new eu.moon.housingdb.dto.SearchResultPlotDto(world.name, world.worldId, territory.name, territory.territoryId, ward.wardNumber, plot, fav.comment) from HousingWorld world
             join world.territories territory
             join territory.wards ward
             join ward.plots plot
-        where (plot.id in :ids)
+            left join Favorite fav on plot = fav.plot
+        where (plot.id in :ids) and (fav is null or fav.username = :username)
         """)
-    List<SearchResultPlotDto> getDTOsByIDs(List<Long> ids);
+    List<SearchResultPlotDto> getDTOsByIDs(List<Long> ids, String username);
 
     @Query("""
         select new eu.moon.housingdb.search.SearchablePlot(

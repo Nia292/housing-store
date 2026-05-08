@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FavoritesRepository extends JpaRepository<Favorite, Integer> {
@@ -15,4 +16,6 @@ public interface FavoritesRepository extends JpaRepository<Favorite, Integer> {
 
     @Query("select plot.id from Favorite fav join fav.plot plot where fav.username = :username")
     List<Long> findIdsByUsername(String username);
+
+    Optional<Favorite> getFavoriteByPlotAndUsername(HousingPlot plot, String username);
 }

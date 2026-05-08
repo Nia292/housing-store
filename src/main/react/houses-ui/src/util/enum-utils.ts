@@ -12,7 +12,7 @@ const tagMap: Partial<Record<HousingTag, string>> = {
     [HousingTag.ConcertHall]: "Concert Hall",
 }
 
-function translateHousingTag(tag: HousingTag): string {
+export function translateHousingTag(tag: HousingTag): string {
     return tagMap[tag] ?? tag;
 }
 

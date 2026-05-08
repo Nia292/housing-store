@@ -23,6 +23,7 @@ export interface SearchResultEntryDto {
     territoryName: string;
     territoryId: number;
     ward: number;
+    favoriteComment: string | null;
     plot: HousingPlot;
 }
 

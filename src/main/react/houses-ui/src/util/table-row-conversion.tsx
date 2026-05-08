@@ -1,5 +1,6 @@
 import type {SearchResultEntryDto} from "../dto/dtos.ts";
 import type {PlotTableRow} from "../component/PlotTable.tsx";
+import {translateHousingTag} from "./enum-utils.ts";
 
 export function mapRows(rows: SearchResultEntryDto[], favorites: number[]): PlotTableRow[] {
     return rows.map(row => ({
@@ -14,6 +15,7 @@ export function mapRows(rows: SearchResultEntryDto[], favorites: number[]): Plot
         tags: DrawTags(row),
         territoryName: row.territoryName,
         worldName: row.worldName,
+        personalComment: row.favoriteComment ?? ''
     }))
 }
 
@@ -30,6 +32,8 @@ const dateFormat = new Intl.DateTimeFormat(navigator.language, {
 const DrawTags = (row: SearchResultEntryDto) => {
     return [row.plot.tagA, row.plot.tagB, row.plot.tagC]
         .filter(value => value != "None")
+        .toSorted()
+        .map(value => translateHousingTag(value))
         .join(", ");
 }
 

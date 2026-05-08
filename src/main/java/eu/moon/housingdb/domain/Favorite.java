@@ -16,4 +16,6 @@ public class Favorite {
     private HousingPlot plot;
 
     private String username;
+
+    private String comment;
 }

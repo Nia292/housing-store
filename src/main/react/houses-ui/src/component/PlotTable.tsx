@@ -1,9 +1,9 @@
 import {Column} from "primereact/column";
 import {DataTable} from "primereact/datatable";
 import type {SearchResultEntryDto} from "../dto/dtos.ts";
-import {ToggleButton} from "primereact/togglebutton";
 import {type JSX, useMemo} from "react";
 import {mapRows} from "../util/table-row-conversion.tsx";
+import {FavoritesToggleButton} from "./FavoritesToggleButton.tsx";
 
 export interface PlotTableRow {
     key: string;
@@ -16,6 +16,7 @@ export interface PlotTableRow {
     lastUpdatedDate: string;
     lastGreetingUpdateDate: string;
     isFavorite: boolean;
+    personalComment: string;
     source: SearchResultEntryDto;
 }
 
@@ -25,7 +26,7 @@ export interface PlotTableProperties {
     favorites: number[];
     loading: boolean;
     favoritesPending: boolean;
-    onFavoritesToggle: (row: SearchResultEntryDto, isFavorite: boolean) => void;
+    onFavoritesToggle(row: SearchResultEntryDto, isFavorite: boolean, text: string): void;
 }
 
 
@@ -33,9 +34,10 @@ export function PlotTable(props: PlotTableProperties) {
 
     const DrawFavorites = (row: PlotTableRow) => {
         return (
-            <ToggleButton disabled={props.favoritesPending} checked={row.isFavorite}
-                          onChange={(e) => props.onFavoritesToggle(row.source, e.value)} onLabel="" offLabel=""
-                          onIcon="pi pi-heart" offIcon="pi pi-heart"/>
+            <FavoritesToggleButton favoritesPending={props.favoritesPending}
+                                   isFavorite={row.isFavorite}
+                                   onFavoritesToggle={(isFavorite, text) => props.onFavoritesToggle(row.source, isFavorite, text)}>
+            </FavoritesToggleButton>
         );
     }
 

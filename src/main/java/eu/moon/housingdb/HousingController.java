@@ -62,7 +62,7 @@ public class HousingController {
                             .stream()
                             .sorted(Comparator.comparing(AvailableWorldDto::name))
                             .toList();
-                    return new AvailableDataCenterDto(StringConversions.getDcName(dcId),worldsSorted );
+                    return new AvailableDataCenterDto(StringConversions.getDcName(dcId), worldsSorted);
                 })
                 .toList();
 
@@ -73,7 +73,7 @@ public class HousingController {
 
     @PostMapping("/search")
     public SearchResultDto performSearch(@RequestBody SearchDto searchDto) {
-        return searchService.search(searchDto);
+        return searchService.search(searchDto, getCurrentUserName());
     }
 
 
@@ -103,7 +103,8 @@ public class HousingController {
                             @PathVariable("territoryId") short territoryId,
                             @PathVariable("wardNumber") short wardNumber,
                             @PathVariable("plot") short plot,
-                            @PathVariable("isFavorite") boolean isFavorite) {
+                            @PathVariable("isFavorite") boolean isFavorite,
+                            @RequestBody String comment) {
         var username = getCurrentUserName();
         housingPlotRepository.findPlot(worldId, territoryId, wardNumber, plot)
                 .ifPresent(housingPlot -> {
@@ -111,10 +112,27 @@ public class HousingController {
                         var fav = new Favorite();
                         fav.setPlot(housingPlot);
                         fav.setUsername(username);
+                        fav.setComment(comment);
                         favoriteRepository.save(fav);
                     } else {
                         favoriteRepository.deleteByPlotAndUsername(housingPlot, username);
                     }
+                });
+    }
+
+    @Transactional
+    @PostMapping("/favorite/{worldId}/{territoryId}/{wardNumber}/{plot}/comment")
+    public void setFavoriteComment(@PathVariable("worldId") short worldId,
+                                   @PathVariable("territoryId") short territoryId,
+                                   @PathVariable("wardNumber") short wardNumber,
+                                   @PathVariable("plot") short plot,
+                                   @RequestBody String comment) {
+        var username = getCurrentUserName();
+        var plotEntity = housingPlotRepository.findPlot(worldId, territoryId, wardNumber, plot).orElseThrow();
+        favoriteRepository.getFavoriteByPlotAndUsername(plotEntity, username)
+                .ifPresent(favorite -> {
+                    favorite.setComment(comment);
+                    favoriteRepository.save(favorite);
                 });
     }
 
@@ -127,7 +145,8 @@ public class HousingController {
     @GetMapping("/favorite-plots")
     public List<SearchResultPlotDto> getFavoritePlots() {
         List<Long> favoritePlotIds = getFavoritePlotIds();
-        return housingPlotRepository.getDTOsByIDs(favoritePlotIds);
+        var username = getCurrentUserName();
+        return housingPlotRepository.getDTOsByIDs(favoritePlotIds, username);
     }
 
     @GetMapping("/search-suggestions")

@@ -109,9 +109,10 @@ class App extends React.Component<AppProps, AppState> {
     }
 
 
-    asyncSetFavorite(plot: SearchResultEntryDto, isFavorite: boolean): void {
+    asyncSetFavorite(plot: SearchResultEntryDto, isFavorite: boolean, text: string): void {
         this.setState({favoritesPending: true});
-        axios.post(`/api/favorite/${plot.worldId}/${plot.territoryId}/${plot.ward}/${plot.plot.plotNumber}/${isFavorite}`)
+        const uri = `/api/favorite/${plot.worldId}/${plot.territoryId}/${plot.ward}/${plot.plot.plotNumber}/${isFavorite}`;
+        axios.post(uri, text, {headers: {"Content-Type": "text/plain"}})
             .then(() => {
                 this.asyncLoadFavorites();
             })
@@ -128,8 +129,8 @@ class App extends React.Component<AppProps, AppState> {
         }, () => this.onSearchOrPageChange());
     }
 
-    onFavoritesToggle = (row: SearchResultEntryDto, favorite: boolean) => {
-        this.asyncSetFavorite(row, favorite);
+    onFavoritesToggle = (row: SearchResultEntryDto, favorite: boolean, text: string) => {
+        this.asyncSetFavorite(row, favorite, text);
     }
 
     setDeferredSearch = (search: SearchDto | null) => {
