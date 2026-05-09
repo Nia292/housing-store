@@ -93,7 +93,7 @@ class App extends React.Component<AppProps, AppState> {
 
     asyncLoadFavorites() {
         this.setState({favoritesPending: true});
-        axios.get<number[]>(`/api/favorites`)
+        axios.get<number[]>(`/api/favorite/plot-ids`)
             .then(value => {
                 this.setState({
                     favorites: value.data,
@@ -109,10 +109,23 @@ class App extends React.Component<AppProps, AppState> {
     }
 
 
-    asyncSetFavorite(plot: SearchResultEntryDto, isFavorite: boolean, text: string): void {
+    asyncAddAsFavorite(plot: SearchResultEntryDto, text: string): void {
         this.setState({favoritesPending: true});
-        const uri = `/api/favorite/${plot.worldId}/${plot.territoryId}/${plot.ward}/${plot.plot.plotNumber}/${isFavorite}`;
+        const uri = `/api/favorite/${plot.worldId}/${plot.territoryId}/${plot.ward}/${plot.plot.plotNumber}`;
         axios.post(uri, text, {headers: {"Content-Type": "text/plain"}})
+            .then(() => {
+                this.asyncLoadFavorites();
+            })
+            .catch((err) => {
+                console.error(err);
+                this.setState({favoritesPending: false});
+            })
+    }
+
+    asyncRemoveFromFavorites(plot: SearchResultEntryDto): void {
+        this.setState({favoritesPending: true});
+        const uri = `/api/favorite/${plot.worldId}/${plot.territoryId}/${plot.ward}/${plot.plot.plotNumber}`;
+        axios.delete(uri)
             .then(() => {
                 this.asyncLoadFavorites();
             })
@@ -129,9 +142,10 @@ class App extends React.Component<AppProps, AppState> {
         }, () => this.onSearchOrPageChange());
     }
 
-    onFavoritesToggle = (row: SearchResultEntryDto, favorite: boolean, text: string) => {
-        this.asyncSetFavorite(row, favorite, text);
+    onAddAsFavorite = (row: SearchResultEntryDto, text: string) => {
+        this.asyncAddAsFavorite(row, text);
     }
+
 
     setDeferredSearch = (search: SearchDto | null) => {
         this.setState({deferredSearch: search}, () => this.onSearchOrPageChange());
@@ -177,7 +191,8 @@ class App extends React.Component<AppProps, AppState> {
                                        rows={this.state.searchResults}
                                        favorites={this.state.favorites}
                                        favoritesPending={this.state.favoritesPending}
-                                       onFavoritesToggle={this.onFavoritesToggle}
+                                       onAddAsFavorite={(text, row) => this.asyncAddAsFavorite(row.source, text)}
+                                       onRemoveFavorite={(row) => this.asyncRemoveFromFavorites(row.source)}
                             >
                             </PlotTable>
                         </div>

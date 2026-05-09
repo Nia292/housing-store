@@ -9,7 +9,8 @@ export interface FavoritesToggleButtonProps {
     favoritesPending: boolean;
     isFavorite: boolean;
 
-    onFavoritesToggle(isFavorite: boolean, text: string): void;
+    onAddAsFavorite(text: string): void;
+    onRemoveFavorite(): void;
 }
 
 export function FavoritesToggleButton(props: FavoritesToggleButtonProps) {
@@ -23,7 +24,7 @@ export function FavoritesToggleButton(props: FavoritesToggleButtonProps) {
             overlayPanel.current?.toggle(e.originalEvent, null);
             setTimeout(() => input.current?.focus(), 50);
         } else {
-            props.onFavoritesToggle(false, "");
+            props.onRemoveFavorite();
         }
     }
 
@@ -34,7 +35,7 @@ export function FavoritesToggleButton(props: FavoritesToggleButtonProps) {
     }
 
     function saveFavorite(event: React.SyntheticEvent): void {
-        props.onFavoritesToggle(true, favoriteText);
+        props.onAddAsFavorite(favoriteText);
         overlayPanel?.current?.toggle(event, null)
     }
 

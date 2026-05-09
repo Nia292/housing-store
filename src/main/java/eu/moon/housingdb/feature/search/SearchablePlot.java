@@ -1,4 +1,4 @@
-package eu.moon.housingdb.search;
+package eu.moon.housingdb.feature.search;
 
 import eu.moon.housingdb.domain.HousingTag;
 import lombok.Data;

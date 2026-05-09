@@ -21,7 +21,7 @@ export function FavoritesTable() {
 
     function asyncLoadData(): void {
         setLoading(true);
-        axios.get<SearchResultEntryDto[]>("/api/favorite-plots",)
+        axios.get<SearchResultEntryDto[]>("/api/favorite/plots",)
             .then(value => {
                 setLoading(false);
                 setRows(mapRows(value.data, []))

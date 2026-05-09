@@ -140,7 +140,7 @@ export function GlobalSearch(props: GlobalSearchProps) {
     }
 
     function asyncQuerySuggestions(value: string): void {
-        axios.get<string[]>(`/api/search-suggestions?search=${value}`)
+        axios.get<string[]>(`/api/search/suggestions?search=${value}`)
             .then(value => {
                 setFuzzySuggestions(value.data);
             });

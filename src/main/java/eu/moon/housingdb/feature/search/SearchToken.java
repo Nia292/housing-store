@@ -1,4 +1,4 @@
-package eu.moon.housingdb.search;
+package eu.moon.housingdb.feature.search;
 
 import lombok.RequiredArgsConstructor;
 import org.hibernate.search.engine.search.predicate.SearchPredicate;

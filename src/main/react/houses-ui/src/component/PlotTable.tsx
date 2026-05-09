@@ -26,7 +26,8 @@ export interface PlotTableProperties {
     favorites: number[];
     loading: boolean;
     favoritesPending: boolean;
-    onFavoritesToggle(row: SearchResultEntryDto, isFavorite: boolean, text: string): void;
+    onAddAsFavorite(text: string, row: PlotTableRow): void;
+    onRemoveFavorite(row: PlotTableRow): void;
 }
 
 
@@ -36,7 +37,8 @@ export function PlotTable(props: PlotTableProperties) {
         return (
             <FavoritesToggleButton favoritesPending={props.favoritesPending}
                                    isFavorite={row.isFavorite}
-                                   onFavoritesToggle={(isFavorite, text) => props.onFavoritesToggle(row.source, isFavorite, text)}>
+                                   onAddAsFavorite={(text) => props.onAddAsFavorite(text, row)}
+                                   onRemoveFavorite={() => props.onRemoveFavorite(row)}>
             </FavoritesToggleButton>
         );
     }

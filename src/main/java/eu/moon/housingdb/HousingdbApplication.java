@@ -5,7 +5,7 @@ import eu.moon.housingdb.domain.HousingTerritory;
 import eu.moon.housingdb.domain.HousingWard;
 import eu.moon.housingdb.domain.HousingWorld;
 import eu.moon.housingdb.repo.HousingWorldRepository;
-import eu.moon.housingdb.search.SearchService;
+import eu.moon.housingdb.feature.search.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;

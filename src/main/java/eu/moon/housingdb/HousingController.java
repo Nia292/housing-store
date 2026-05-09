@@ -1,19 +1,14 @@
 package eu.moon.housingdb;
 
-import eu.moon.housingdb.domain.Favorite;
 import eu.moon.housingdb.dto.*;
-import eu.moon.housingdb.repo.FavoritesRepository;
 import eu.moon.housingdb.repo.HousingPlotRepository;
-import eu.moon.housingdb.search.SearchService;
+import eu.moon.housingdb.feature.search.SearchService;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,7 +19,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class HousingController {
     private final HousingPlotRepository housingPlotRepository;
-    private final FavoritesRepository favoriteRepository;
     private final EntityManager entityManager;
     private final SearchService searchService;
     private final HousingUpdater housingUpdater;
@@ -71,10 +65,6 @@ public class HousingController {
         return new AvailableDataDto(dataCenters, wards);
     }
 
-    @PostMapping("/search")
-    public SearchResultDto performSearch(@RequestBody SearchDto searchDto) {
-        return searchService.search(searchDto, getCurrentUserName());
-    }
 
 
     @PostMapping("/update")
@@ -95,70 +85,5 @@ public class HousingController {
         log.info("Receiving greeting update for {} - {} - {}/{}", worldId, territoryId, wardNumber, plot);
         housingUpdater.updateGreeting(worldId, territoryId, wardNumber, plot, newGreeting)
                 .ifPresent(searchService::addToIndex);
-    }
-
-    @Transactional
-    @PostMapping("/favorite/{worldId}/{territoryId}/{wardNumber}/{plot}/{isFavorite}")
-    public void setFavorite(@PathVariable("worldId") short worldId,
-                            @PathVariable("territoryId") short territoryId,
-                            @PathVariable("wardNumber") short wardNumber,
-                            @PathVariable("plot") short plot,
-                            @PathVariable("isFavorite") boolean isFavorite,
-                            @RequestBody String comment) {
-        var username = getCurrentUserName();
-        housingPlotRepository.findPlot(worldId, territoryId, wardNumber, plot)
-                .ifPresent(housingPlot -> {
-                    if (isFavorite) {
-                        var fav = new Favorite();
-                        fav.setPlot(housingPlot);
-                        fav.setUsername(username);
-                        fav.setComment(comment);
-                        favoriteRepository.save(fav);
-                    } else {
-                        favoriteRepository.deleteByPlotAndUsername(housingPlot, username);
-                    }
-                });
-    }
-
-    @Transactional
-    @PostMapping("/favorite/{worldId}/{territoryId}/{wardNumber}/{plot}/comment")
-    public void setFavoriteComment(@PathVariable("worldId") short worldId,
-                                   @PathVariable("territoryId") short territoryId,
-                                   @PathVariable("wardNumber") short wardNumber,
-                                   @PathVariable("plot") short plot,
-                                   @RequestBody String comment) {
-        var username = getCurrentUserName();
-        var plotEntity = housingPlotRepository.findPlot(worldId, territoryId, wardNumber, plot).orElseThrow();
-        favoriteRepository.getFavoriteByPlotAndUsername(plotEntity, username)
-                .ifPresent(favorite -> {
-                    favorite.setComment(comment);
-                    favoriteRepository.save(favorite);
-                });
-    }
-
-    @GetMapping("/favorites")
-    public List<Long> getFavoritePlotIds() {
-        var username = getCurrentUserName();
-        return favoriteRepository.findIdsByUsername(username);
-    }
-
-    @GetMapping("/favorite-plots")
-    public List<SearchResultPlotDto> getFavoritePlots() {
-        List<Long> favoritePlotIds = getFavoritePlotIds();
-        var username = getCurrentUserName();
-        return housingPlotRepository.getDTOsByIDs(favoritePlotIds, username);
-    }
-
-    @GetMapping("/search-suggestions")
-    public List<String> getTopSuggestions(@RequestParam("search") String search) {
-        if (search.isBlank()) {
-            return Collections.emptyList();
-        }
-        return searchService.fuzzySuggestions(search);
-    }
-
-    private String getCurrentUserName() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getName();
     }
 }

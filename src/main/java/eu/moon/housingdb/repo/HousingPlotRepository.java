@@ -3,7 +3,7 @@ package eu.moon.housingdb.repo;
 import eu.moon.housingdb.domain.HousingPlot;
 import eu.moon.housingdb.dto.MissingData;
 import eu.moon.housingdb.dto.SearchResultPlotDto;
-import eu.moon.housingdb.search.SearchablePlot;
+import eu.moon.housingdb.feature.search.SearchablePlot;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -42,7 +42,7 @@ public interface HousingPlotRepository extends JpaRepository<HousingPlot, Long> 
     List<SearchResultPlotDto> getDTOsByIDs(List<Long> ids, String username);
 
     @Query("""
-        select new eu.moon.housingdb.search.SearchablePlot(
+        select new eu.moon.housingdb.feature.search.SearchablePlot(
                 plot.id, world.worldId, world.name, territory.territoryId, territory.name,
                  ward.wardNumber, plot.plotNumber, plot.estateOwnerName, plot.greeting, plot.visitorsAllowed, plot.hasGreeting, plot.lastUpdated,
                  plot.tagA, plot.tagB, plot.tagC
@@ -55,7 +55,7 @@ public interface HousingPlotRepository extends JpaRepository<HousingPlot, Long> 
     Stream<SearchablePlot> getAllForIndex();
 
     @Query("""
-        select new eu.moon.housingdb.search.SearchablePlot(
+        select new eu.moon.housingdb.feature.search.SearchablePlot(
                 plot.id, world.worldId, world.name, territory.territoryId, territory.name,
                  ward.wardNumber, plot.plotNumber, plot.estateOwnerName, plot.greeting, plot.visitorsAllowed, plot.hasGreeting, plot.lastUpdated,
                  plot.tagA, plot.tagB, plot.tagC
@@ -69,7 +69,7 @@ public interface HousingPlotRepository extends JpaRepository<HousingPlot, Long> 
     SearchablePlot getOneForIndex(Long id);
 
     @Query("""
-        select new eu.moon.housingdb.search.SearchablePlot(
+        select new eu.moon.housingdb.feature.search.SearchablePlot(
                 plot.id, world.worldId, world.name, territory.territoryId, territory.name,
                  ward.wardNumber, plot.plotNumber, plot.estateOwnerName, plot.greeting, plot.visitorsAllowed, plot.hasGreeting, plot.lastUpdated,
                  plot.tagA, plot.tagB, plot.tagC
